@@ -1,0 +1,274 @@
+/* src/index.css */
+
+/* Define our global color palette */
+:root {
+  --primary-green: #2e7d32;
+  --vault-dark: #121212;
+  --blazer-red: #e03a3e;
+  --bg-light: #f4f6f4;
+  --text-main: #333333;
+}
+
+/* Reset default browser margins */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: var(--bg-light);
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+/* --- Layout & Header --- */
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1; /* Pushes the footer to the bottom */
+}
+
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 3px solid var(--primary-green);
+  margin-bottom: 40px;
+}
+
+.main-header h1 a {
+  color: var(--vault-dark);
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 2rem;
+  letter-spacing: -1px;
+}
+
+.main-nav ul {
+  list-style: none;
+  display: flex;
+  gap: 25px;
+}
+
+.main-nav a {
+  text-decoration: none;
+  color: var(--text-main);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  transition: color 0.3s;
+}
+
+.main-nav a:hover {
+  color: var(--primary-green);
+}
+
+/* --- Home & Recipe Cards --- */
+.recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.recipe-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  border-top: 5px solid var(--primary-green);
+  transition: transform 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.recipe-card:hover {
+  transform: translateY(-5px);
+}
+
+.image-placeholder {
+  background: var(--vault-dark);
+  color: white;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+}
+
+.recipe-card-content {
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.recipe-description {
+  margin: 15px 0;
+  color: #555;
+  flex: 1;
+}
+
+.recipe-stats {
+  display: flex;
+  gap: 15px;
+  font-size: 0.9em;
+  color: #777;
+  margin-bottom: 15px;
+}
+
+.oil-free-badge {
+  align-self: flex-start;
+  background: var(--primary-green);
+  color: white;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8em;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.view-recipe-btn {
+  display: block;
+  text-decoration: none;
+  background-color: var(--blazer-red);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+  transition: background 0.3s;
+}
+
+.view-recipe-btn:hover {
+  background-color: #ba282c; /* A slightly darker red for the hover state */
+}
+
+/* --- Recipe Details Page --- */
+.recipe-details h2 {
+  font-size: 2.5rem;
+  color: var(--vault-dark);
+  margin-bottom: 20px;
+}
+
+.oil-free-logic {
+  background: #e8f5e9;
+  padding: 20px;
+  border-left: 5px solid var(--primary-green);
+  margin: 30px 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.oil-free-logic h4 {
+  color: var(--primary-green);
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 30px;
+}
+
+.ingredients-list ul, .nutritional-vault p {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.ingredients-list li {
+  margin-left: 20px;
+  margin-bottom: 10px;
+}
+
+/* --- Footer --- */
+footer {
+  text-align: center;
+  padding: 40px 0 20px;
+  color: #888;
+  font-size: 0.9em;
+}
+
+/* --- Admin Dashboard Styles --- */
+.admin-tabs {
+  margin: 20px 0;
+  display: flex;
+  gap: 10px;
+}
+
+.admin-tabs button {
+  padding: 10px 20px;
+  border: none;
+  background: #ddd;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 4px;
+}
+
+.admin-tabs button.active {
+  background: var(--vault-dark);
+  color: white;
+}
+
+.admin-form {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.form-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.form-group input, .form-group textarea {
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.macro-inputs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.save-btn {
+  background: var(--primary-green);
+  color: white;
+  padding: 15px;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+}
