@@ -1,0 +1,105 @@
+/* src/pages/AdminDashboard.module.css */
+
+/* .adminContainer {
+   We'll let the global layout handle the main container padding, 
+     but we can add specific admin tweaks here if needed 
+} */
+
+.adminHeader {
+  margin-bottom: 20px;
+}
+
+.adminTabs {
+  margin: 20px 0;
+  display: flex;
+  gap: 10px;
+}
+
+.adminTabs button {
+  padding: 10px 20px;
+  border: none;
+  background: #ddd;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+.adminTabs button.active {
+  background: var(--vault-dark);
+  color: white;
+}
+
+.adminForm {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.formGroup {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.formGroup label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.formGroup input, 
+.formGroup textarea {
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.macroInputs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.saveBtn {
+  background: var(--primary-green);
+  color: white;
+  padding: 15px;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.3s;
+}
+
+.saveBtn:hover {
+  background: #236026; /* Slightly darker green */
+}
+
+/* --- Mobile View Fixes --- */
+@media (max-width: 768px) {
+  .adminTabs {
+    flex-direction: column; /* Stacks the tabs on top of each other */
+  }
+
+  .formRow {
+    grid-template-columns: 1fr; /* Stacks Prep Time and Cook Time */
+    gap: 0;
+  }
+
+  .macroInputs {
+    grid-template-columns: 1fr; /* Stacks P, C, and F inputs */
+  }
+
+  .adminForm {
+    padding: 20px; /* Gives a bit more breathing room on tiny screens */
+  }
+}

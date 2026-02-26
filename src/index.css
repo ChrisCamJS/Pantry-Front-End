@@ -73,13 +73,7 @@ body {
   color: var(--primary-green);
 }
 
-/* --- Home & Recipe Cards --- */
-.recipe-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 30px;
-  margin-top: 40px;
-}
+/* --- Recipe Cards --- */
 
 .recipe-card {
   background: white;
@@ -204,71 +198,3 @@ footer {
   font-size: 0.9em;
 }
 
-/* --- Admin Dashboard Styles --- */
-.admin-tabs {
-  margin: 20px 0;
-  display: flex;
-  gap: 10px;
-}
-
-.admin-tabs button {
-  padding: 10px 20px;
-  border: none;
-  background: #ddd;
-  cursor: pointer;
-  font-weight: bold;
-  border-radius: 4px;
-}
-
-.admin-tabs button.active {
-  background: var(--vault-dark);
-  color: white;
-}
-
-.admin-form {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.form-group {
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group label {
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.form-group input, .form-group textarea {
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.macro-inputs {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.save-btn {
-  background: var(--primary-green);
-  color: white;
-  padding: 15px;
-  border: none;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-  width: 100%;
-}
