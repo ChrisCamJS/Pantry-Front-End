@@ -8,7 +8,9 @@ import {Link} from 'react-router-dom';
  */
 
 const Recipecard = ({recipe}) => {
-    const {title, description, cookTime, prepTime, isOilFree} = recipe;
+    const {title, description, cookTime, prepTime, isOilFree, imageUrl, averageRating, NutritionInfo } = recipe;
+
+    console.log(recipe);
 
     return (
         <div className='recipe-card'>
