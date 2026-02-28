@@ -39,8 +39,8 @@ export const api = {
     getRecipes: () => {
         return fetchWrapper('/recipes', {method: 'GET'});
     },
-    getRecipesById: () => {
-        return fetchWrapper(`/recipes/${id}`, {method: 'GET'});
+    getRecipesById: (id) => {
+        return fetchWrapper(`/recipes/single?id=${id}`, {method: 'GET'});
     },
 /**
     * Securely add a new recipe to the database via the Admin Vault.

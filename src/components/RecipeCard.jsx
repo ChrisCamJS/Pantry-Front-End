@@ -4,18 +4,18 @@ import {Link} from 'react-router-dom';
 /**
  * RecipeCard Component
  * Displays a summary of a single recipe.
- * @param {Object} recipe - The recipe data object (Title, Desc, Macros, etc.)
+ * @param {Object} recipe - The recipe data object
  */
 
 const Recipecard = ({recipe}) => {
-    const {title, description, cookTime, prepTime, isOilFree, imageUrl, averageRating, NutritionInfo } = recipe;
+    const {title, description, cookTime, prepTime, isOilFree, imageUrl, averageRating, nutritionInfo, ingredients, notes, yields, ratingCount, authorId} = recipe;
 
-    console.log(recipe);
+    // console.log(recipe);
 
     return (
         <div className='recipe-card'>
             <div className='recipe-card-image'>
-                <div className='image-placeholder'>WFPB Goodness</div>
+                <img src={recipe.imageUrl} alt={recipe.title} style={{width: '100%', height: 'auto'}} />
             </div>
 
             <div className='recipe-card-content'>
