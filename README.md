@@ -1,16 +1,23 @@
-# React + Vite
+# 🥦 The Veggie Vault (Front-End)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Welcome to the front-end repository for **The Veggie Vault**—a secure, sleek, and strictly Whole-Food, Plant-Based (WFPB) recipe platform. This project is built to prove that you don't need oil to make a smashing meal, and it backs it all up with transparent, mathematically sound macro and micro nutritional data. 
 
-Currently, two official plugins are available:
+## 🛠️ Tech Stack
+* **Framework:** React (v19) via Vite for blazing-fast development and hot-module replacement.
+* **Routing:** React Router v7 for seamless, single-page navigation.
+* **Styling:** Vanilla CSS with modular architecture (because sometimes, keeping it classic is the best recipe).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Key Features
+* **The Master Grid:** A dynamic homepage displaying all vault entries with quick-glance stats (prep/cook times).
+* **Strictly Oil-Free:** Built-in rationale rendering to explain *why* any rogue ingredients are permitted.
+* **Progressive Disclosure Nutrition:** A custom `NutritionPanel` that breaks down the math behind the macros (Protein × 4, Fat × 9, Carbs × 4) and toggles a massive list of 15+ micronutrients to keep the UI clean.
+* **Admin Vault:** A restricted dashboard for adding new recipes, complete with macro inputs and oil-free rationales.
 
-## React Compiler
+## 🚀 Getting Started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Want to spin this up on your local machine? Easy peasy.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1. **Clone the repository.**
+2. **Install the dependencies:**
+   ```bash
+   npm install
