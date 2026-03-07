@@ -11,8 +11,9 @@ const Header = () => {
             <nav className="main-nav">
                 <ul>
                 <li><Link to="/">Home</Link></li>
-                <li><Link to="/recipes">All Recipes</Link></li>
+                <li><Link to="/wellness">Wellness Tools</Link></li>
                 <li><Link to="/remix-engine">Remix Engine</Link></li>
+                <li><Link to="/login">Login</Link></li>
                 <li><Link to="/admin">Admin Vault</Link></li>
                 </ul>
             </nav>

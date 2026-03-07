@@ -52,6 +52,19 @@ addRecipe: (recipeData) => {
         method: 'POST',
         body: JSON.stringify(recipeData),
     });
-}
+},
+// auth routes 
+    login: (credentials) => {
+        return fetchWrapper('/login', {
+            method: 'POST',
+            body: JSON.stringify(credentials),
+        });
+    },
 
+    // logout 
+    logout: () => {
+        return fetchWrapper('/logout', {
+            method: 'POST',
+        });
+    }
 }
