@@ -158,6 +158,13 @@
 
 .draftBtn:hover { background: #d97706; }
 
+.publishBtn {
+    background: #10b981; /* A nice confident emerald green */
+    color: white;
+}
+
+.publishBtn:hover { background: #059669; }
+
 .editBtn {
     background: #3b82f6;
     color: white;

@@ -10,13 +10,20 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
  */
 
 async function fetchWrapper(endpoint, options = {}) {
+    // check if we are sending files
+    const isFormData = options.body instanceof FormData;
+    
+    // Conditionally build our headers
+    const headers = { ...options.headers };
+    if (!isFormData) {
+        headers['Content-Type'] = 'application/json';
+    }
+
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers,
-            },
+            credentials: 'include',
+            headers,
         });
 
         const data = await response.json();
@@ -65,6 +72,44 @@ addRecipe: (recipeData) => {
     logout: () => {
         return fetchWrapper('/logout', {
             method: 'POST',
+        });
+    },
+
+    /**
+     * Permanently delete a recipe
+     *  @param {number} id 
+     */
+    deleteRecipe: (id) => {
+        return fetchWrapper(`/recipes?${id}`, {method: 'DELETE'});
+    },
+    /**
+     * Toggle a recipe's draft status
+     * @param {number} id 
+     * @param {boolean} isDraft - true hides it, false publishes it
+     */
+    toggleDraft: (id, isDraft) => {
+        return fetchWrapper('/recipes/draft', {
+            method: 'PUT',
+            body: JSON.stringify({ id, is_draft: isDraft ? 1 : 0 }),
+        });
+    },
+
+    // Image upload route
+    uploadImages: (formData) => {
+        return fetchWrapper('/upload', {
+            method: 'POST',
+            body: formData,
+        });
+    },
+    /**
+     * Update an existing recipe
+     * @param {number} id - The ID of the recipe to update
+     * @param {Object} recipeData - The updated recipe data
+     */
+    updateRecipe: (id, recipeData) => {
+        return fetchWrapper(`/recipes?id=${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(recipeData),
         });
     }
 }
