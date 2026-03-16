@@ -3,17 +3,15 @@
 import React, { useState } from 'react';
 import { getSystemInstructions } from '../../utils/promptBuilder';
 import { sendChatMessage, generateRecipeImage } from '../../services/geminiApi'; 
+import { useAuth } from '../../context/AuthContext';
 import RecipeForm from './RecipeForm';
 import RecipeResult from './RecipeResult';
 import './EmmasRecipeEngine.css';
 
-// NEW: Bring in the bouncer's guest list!
-import { useAuth } from '../../context/AuthContext';
-
 const EmmasRecipeEngine = () => {
-    // Grab the logged-in user
-    const { user } = useAuth();
-    // Fallback to 'Guest' just in case, though the ProtectedRoute should prevent that
+    // Grab the logged-in user and the spendToken function!
+    const { user, spendToken } = useAuth();
+    // Fallback to 'Guest' just in case
     const currentUserName = user?.username || 'Guest';
 
     const [chatHistory, setChatHistory] = useState([]);
@@ -24,7 +22,26 @@ const EmmasRecipeEngine = () => {
     const [followUpText, setFollowUpText] = useState('');
     const [currentIsOilFree, setCurrentIsOilFree] = useState(true);
 
-    const processChatTurn = async (newUserMessageText, isOilFreeSetting) => {
+    const [isChatMode, setIsChatMode] = useState(false);
+
+const processChatTurn = async (newUserMessageText, isOilFreeSetting) => {
+        
+        // --- STEP A & B: THE BOUNCER AND THE TOLLBOOTH (RECIPES ONLY) ---
+        if (!isChatMode) {
+            if (user?.generation_tokens <= 0) {
+                alert("Oh dear, love! Your token stash is completely empty. Time to top up to keep generating full recipes with images.");
+                return; 
+            }
+
+            const tokenResult = await spendToken();
+            
+            if (!tokenResult.success) {
+                alert(`Cheeky! The till wouldn't open: ${tokenResult.message}`);
+                return; 
+            }
+        }
+        // --- END OF TOLLBOOTH ---
+
         setIsLoading(true);
         setError(null);
         setCurrentIsOilFree(isOilFreeSetting);
@@ -35,10 +52,10 @@ const EmmasRecipeEngine = () => {
         ];
 
         try {
-            // NEW: Pass the username into my brain!
-            const systemInstructions = getSystemInstructions(isOilFreeSetting, currentUserName);
+            const systemInstructions = getSystemInstructions(isOilFreeSetting, currentUserName, isChatMode);
             
-            if (chatHistory.length === 0) {
+            // ONLY generate an image if they are paying for a recipe!
+            if (!isChatMode && chatHistory.length === 0) {
                 generateRecipeImage(newUserMessageText)
                     .then(base64Data => {
                         if (base64Data) {
@@ -62,7 +79,6 @@ const EmmasRecipeEngine = () => {
             setIsLoading(false);
         }
     };
-
     const handleInitialGenerate = (userRequest, isOilFree) => {
         setChatHistory([]);
         setRecipeImage(null); 
@@ -78,18 +94,58 @@ const EmmasRecipeEngine = () => {
         processChatTurn(messageToSend, currentIsOilFree);
     };
 
+    // A quick check to see if they are broke, so we can disable UI elements
+    const isBroke = user?.generation_tokens <= 0;
+
     return (
         <div className="recipe-dashboard-container">
             <header className="dashboard-header">
-                <h2>Emma Advanced Premium Generator</h2>
+                <h2>Emma's Premium Recipe Generator</h2>
                 <p>Strictly WFPB. Full Macros. Live Banter Enabled.</p>
             </header>
 
             {chatHistory.length === 0 && (
-                <RecipeForm 
-                    onGenerate={handleInitialGenerate} 
-                    isLoading={isLoading} 
-                />
+                <>
+                    {/* The Mode Toggle */}
+                    <div className="mode-toggle-container" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center' }}>
+                        <span style={{ fontWeight: !isChatMode ? 'bold' : 'normal', color: !isChatMode ? '#805ad5' : '#718096' }}>
+                            🍲 Recipe Generator (1 Token)
+                        </span>
+                        
+                        <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '50px', height: '24px' }}>
+                            <input 
+                                type="checkbox" 
+                                checked={isChatMode} 
+                                onChange={() => setIsChatMode(!isChatMode)} 
+                                style={{ opacity: 0, width: 0, height: 0 }}
+                            />
+                            <span className="slider round" style={{ 
+                                position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, 
+                                backgroundColor: isChatMode ? '#48bb78' : '#cbd5e0', 
+                                transition: '.4s', borderRadius: '34px' 
+                            }}>
+                                <span style={{
+                                    position: 'absolute', content: '""', height: '16px', width: '16px', 
+                                    left: isChatMode ? '30px' : '4px', bottom: '4px', backgroundColor: 'white', 
+                                    transition: '.4s', borderRadius: '50%'
+                                }} />
+                            </span>
+                        </label>
+                        
+                        <span style={{ fontWeight: isChatMode ? 'bold' : 'normal', color: isChatMode ? '#48bb78' : '#718096' }}>
+                            💬 Nutrition Natter (Free)
+                        </span>
+                    </div>
+
+                    {/* The Form */}
+                    <RecipeForm 
+                        onGenerate={handleInitialGenerate} 
+                        isLoading={isLoading} 
+                        // Only lock them out if they are broke AND trying to use Recipe Mode
+                        isBroke={isBroke && !isChatMode} 
+                        isChatMode={isChatMode}
+                    />
+                </>
             )}
 
             {error && (
@@ -103,7 +159,6 @@ const EmmasRecipeEngine = () => {
                     if (msg.role === 'user') {
                         return (
                             <div key={index} style={{ textAlign: 'right', margin: '1rem 0', color: '#4a5568', fontStyle: 'italic' }}>
-                                {/* NEW: Dynamic username in the chat! */}
                                 <strong>{currentUserName}:</strong> {msg.parts[0].text}
                             </div>
                         )
@@ -125,12 +180,17 @@ const EmmasRecipeEngine = () => {
                         type="text" 
                         value={followUpText}
                         onChange={(e) => setFollowUpText(e.target.value)}
-                        placeholder="Talk back to Emma (e.g., 'Swap the lentils for chickpeas, please!')"
-                        disabled={isLoading}
-                        style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e0' }}
+                        placeholder={isBroke ? "Out of tokens!" : "Talk back to Emma (e.g., 'Swap the lentils for chickpeas, please!')"}
+                        disabled={isLoading || isBroke}
+                        style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e0', backgroundColor: isBroke ? '#edf2f7' : 'white' }}
                     />
-                    <button type="submit" className="submit-btn" disabled={isLoading || !followUpText.trim()}>
-                        {isLoading ? "Thinking..." : "Send"}
+                    <button 
+                        type="submit" 
+                        className="submit-btn" 
+                        disabled={isLoading || !followUpText.trim() || isBroke}
+                        style={{ cursor: (isLoading || isBroke) ? 'not-allowed' : 'pointer' }}
+                    >
+                        {isLoading ? "Thinking..." : (isBroke ? "🪙 Skint" : "Send")}
                     </button>
                 </form>
             )}
@@ -143,7 +203,7 @@ const EmmasRecipeEngine = () => {
                     }}
                     style={{ marginTop: '1rem', background: 'transparent', color: '#e53e3e', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
                  >
-                     Bin this and start a new recipe
+                    Bin this and start a new recipe
                  </button>
             )}
         </div>

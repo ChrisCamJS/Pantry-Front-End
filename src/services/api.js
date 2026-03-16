@@ -111,5 +111,29 @@ addRecipe: (recipeData) => {
             method: 'PUT',
             body: JSON.stringify(recipeData),
         });
-    }
+    },
+    /**
+     * Allow Premium users to save a generated recipe from the Engine directly to the vault.
+     * @param {Object} recipeData - The generated recipe object
+     */
+    saveGeneratedRecipe: (recipeData) => {
+        return fetchWrapper('/recipes/save-generated', {
+            method: 'POST',
+            body: JSON.stringify(recipeData),
+        });
+    },
+    // auth routes 
+    login: (credentials) => {
+        return fetchWrapper('/login', {
+            method: 'POST',
+            body: JSON.stringify(credentials),
+        });
+    },
+
+    // --- THE TOKEN ROUTE ---
+    deductToken: () => {
+        return fetchWrapper('/users/deduct-token', {
+            method: 'POST',
+        });
+    },
 }

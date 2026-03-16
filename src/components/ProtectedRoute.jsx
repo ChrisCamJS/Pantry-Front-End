@@ -11,14 +11,15 @@ const ProtectedRoute = ({ adminOnly = false, premiumOnly = false }) => {
     }
     
     // They are logged in, but are they on the admin guest list?
-    if (adminOnly && user.is_admin !== 1) {
+    // We use String() here just in case PHP sends it as a number, string, or boolean!
+    if (adminOnly && String(user.is_admin) !== '1' && user.is_admin !== true) {
         return <Navigate to="/" replace />;
     }
 
     // We check the new account_tier from the database payload.
     if (premiumOnly && user.account_tier !== 'premium') {
         // Redirecting to home for now. 
-        // Note: We should probably build an eye-catching '/upgrade' page later to take their money!
+        // I completely agree, we need a shiny upgrade page to take their money!
         return <Navigate to="/" replace />;
     }
 
