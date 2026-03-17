@@ -16,7 +16,7 @@ const Home = () => {
 
     // --- Pagination State ---
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(1); // change this number for different projects or views
+    const [itemsPerPage] = useState(6); // change this number for different projects or views
 
     useEffect(() => {
         const loadRecipes = async () => {
@@ -47,8 +47,8 @@ const Home = () => {
     return (
         <div className={styles.homeContainer}>
             <SearchBar />
-            <h2>Latest Vault Entries</h2>
-            <p>Strictly WFPB and Oil-Free</p>
+            <h2 className={styles.title}>Latest Culinary Discoveries</h2>
+            <p className={styles.subTitle}>Hand-crafted, plant-based, and powered by you.</p>
             <div className={styles.recipeGrid}>
                 {currentRecipes.length > 0 ? (
                     currentRecipes.map(recipe => (

@@ -22,6 +22,19 @@
   color: var(--blazer-red);
 }
 
+.title {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--vault-dark);
+}
+
+.subTitle {
+  font-style: italic;
+  color: var(--primary-green);
+  margin-top: -8px;
+}
+
 /* Mobile Tweak */
 @media (max-width: 600px) {
   .recipeGrid {

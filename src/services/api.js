@@ -74,13 +74,13 @@ addRecipe: (recipeData) => {
             method: 'POST',
         });
     },
-
     /**
      * Permanently delete a recipe
      *  @param {number} id 
      */
     deleteRecipe: (id) => {
-        return fetchWrapper(`/recipes?${id}`, {method: 'DELETE'});
+       return fetchWrapper(`${API_BASE_URL}/recipes?id=${id}`, { method: 'DELETE' })
+        // return fetchWrapper(`${API_BASE_URL}/recipes/${id}`, { method: 'DELETE' })
     },
     /**
      * Toggle a recipe's draft status

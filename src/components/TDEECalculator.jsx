@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-
+import './TDEECalculator.css';
 // ============================================================================
 // COMPONENT: TDEECalculator
 // PURPOSE: Calculates Basal Metabolic Rate (BMR) and Total Daily Energy 
@@ -70,19 +70,19 @@ const TDEECalculator = () => {
 
   // --- 3. THE UI RENDER ---
   return (
-<div className="max-w-2xl mx-auto">
+    <div className="calculator-wrapper">
       
       {/* Header Section */}
-      <div className="flex justify-between items-end mb-4 border-b pb-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">2. Caloric Needs (TDEE)</h2>
-          <p className="text-gray-500 text-sm mt-1">
+      <div className="calc-header header-purple">
+        <div className="calc-title-group">
+          <h2 className="calc-main-title">2. Caloric Needs (TDEE)</h2>
+          <p className="calc-subtitle">
             Discover your body's daily energy needs to tailor your nutrition.
           </p>
         </div>
         <button 
           onClick={() => setShowDetails(!showDetails)}
-          className="text-sm font-semibold text-purple-600 hover:text-purple-800 transition-colors"
+          className="details-toggle-btn btn-purple"
         >
           {showDetails ? 'Hide Details ▲' : 'How it Works ▼'}
         </button>
@@ -90,59 +90,58 @@ const TDEECalculator = () => {
 
       {/* Educational Dropdown */}
       {showDetails && (
-        <div className="bg-purple-50 border border-purple-100 rounded-lg p-4 mb-6 text-sm text-purple-900 animate-fade-in">
-          <h4 className="font-bold mb-2">The Engine Under the Hood:</h4>
-          <p className="mb-3">
+        <div className="edu-dropdown dropdown-purple animate-fade-in">
+          <h4 className="edu-label">The Engine Under the Hood:</h4>
+          <p className="edu-text">
             We use the <strong>Mifflin-St Jeor equation</strong>, widely considered the gold standard for calculating Basal Metabolic Rate (BMR) in clinical settings. 
           </p>
-          <h4 className="font-bold mb-1">Example Calculation:</h4>
-          <p>
+          <h4 className="edu-label">Example Calculation:</h4>
+          <p className="edu-text">
             If our 5'10", 150 lb runner is a 35-year-old male:
-            <br />
-            1. The equation finds his BMR (calories burned just staying alive) is roughly <strong>1,643 calories</strong>.
-            <br />
-            2. If he runs 4 days a week (Moderately Active multiplier of 1.55): 1,643 × 1.55 = <strong>2,546 calories/day</strong>.
-            <br />
-            3. That final number is his Total Daily Energy Expenditure (TDEE). Eating exactly that amount will maintain his 150 lb frame.
+            <span className="step-list">
+              <span><strong>1.</strong> The equation finds his BMR (calories burned just staying alive) is roughly <strong>1,643 calories</strong>.</span>
+              <span><strong>2.</strong> If he runs 4 days a week (Moderately Active multiplier of 1.55): 1,643 × 1.55 = <strong>2,546 calories/day</strong>.</span>
+              <span><strong>3.</strong> That final number is his TDEE. Eating exactly that amount will maintain his 150 lb frame.</span>
+            </span>
           </p>
         </div>
       )}
 
       {/* Input Form */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">Age</label>
-            <input type="number" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-purple-500 outline-none" placeholder="35" value={age} onChange={(e) => setAge(e.target.value)} />
+      <div className="input-grid">
+        <div className="input-row">
+          <div className="input-group">
+            <label className="input-label">Age</label>
+            <input type="number" className="styled-input" placeholder="35" value={age} onChange={(e) => setAge(e.target.value)} />
           </div>
-          <div className="flex-1">
-            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">Gender</label>
-            <select className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-purple-500 outline-none" value={gender} onChange={(e) => setGender(e.target.value)}>
+          <div className="input-group">
+            <label className="input-label">Gender</label>
+            <select className="styled-select" value={gender} onChange={(e) => setGender(e.target.value)}>
               <option value="male">Male</option>
               <option value="female">Female</option>
             </select>
           </div>
         </div>
 
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">Height (ft)</label>
-            <input type="number" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-purple-500 outline-none" placeholder="5" value={heightFt} onChange={(e) => setHeightFt(e.target.value)} />
+        <div className="input-row">
+          <div className="input-group">
+            <label className="input-label">Height (ft)</label>
+            <input type="number" className="styled-input" placeholder="5" value={heightFt} onChange={(e) => setHeightFt(e.target.value)} />
           </div>
-          <div className="flex-1">
-            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">Height (in)</label>
-            <input type="number" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-purple-500 outline-none" placeholder="10" min="0" max="11" value={heightIn} onChange={(e) => setHeightIn(e.target.value)} />
+          <div className="input-group">
+            <label className="input-label">Height (in)</label>
+            <input type="number" className="styled-input" placeholder="10" min="0" max="11" value={heightIn} onChange={(e) => setHeightIn(e.target.value)} />
           </div>
         </div>
 
-        <div>
-          <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">Weight (lbs)</label>
-          <input type="number" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-purple-500 outline-none" placeholder="150" value={weightLbs} onChange={(e) => setWeightLbs(e.target.value)} />
+        <div className="input-group">
+          <label className="input-label">Weight (lbs)</label>
+          <input type="number" className="styled-input" placeholder="150" value={weightLbs} onChange={(e) => setWeightLbs(e.target.value)} />
         </div>
 
-        <div>
-          <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">Activity Level</label>
-          <select className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-purple-500 outline-none" value={activityLevel} onChange={(e) => setActivityLevel(e.target.value)}>
+        <div className="input-group">
+          <label className="input-label">Activity Level</label>
+          <select className="styled-select" value={activityLevel} onChange={(e) => setActivityLevel(e.target.value)}>
             <option value="">-- Select an Option --</option>
             <option value="1.2">Sedentary (Little/no exercise)</option>
             <option value="1.375">Lightly Active (1-3 days/wk)</option>
@@ -155,41 +154,41 @@ const TDEECalculator = () => {
 
       {/* Auto-Render Results */}
       {results && (
-        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-purple-100 p-6 rounded-xl shadow-inner mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+        <div className="results-container container-purple shadow-inner">
+          <div className="results-split-grid">
             
-            <div className="text-center md:border-r border-purple-200 md:pr-4">
-              <div className="text-gray-600 mb-1 text-sm">To Maintain Current Weight (TDEE)</div>
-              <div className="text-4xl font-extrabold text-purple-700 mb-1">{results.maintain}</div>
-              <div className="text-sm font-semibold text-purple-500 uppercase tracking-wider">Calories / Day</div>
+            <div className="results-main-column">
+              <div className="results-label">To Maintain Weight (TDEE)</div>
+              <div className="results-value value-purple">{results.maintain}</div>
+              <div className="results-unit">Calories / Day</div>
               
-              <div className="mt-4 pt-4 border-t border-purple-100">
-                <div className="text-gray-500 text-xs uppercase">Basal Metabolic Rate (BMR)</div>
-                <div className="font-bold text-gray-700">{results.bmr} calories</div>
+              <div className="results-footer">
+                <div className="footer-label">Basal Metabolic Rate (BMR)</div>
+                <div className="footer-value">{results.bmr} calories</div>
               </div>
             </div>
 
-            <div className="space-y-3">
-               <h4 className="text-center font-bold text-gray-700 text-sm uppercase tracking-wide mb-2">Adjusted Goals</h4>
-               <div className="flex justify-between bg-white p-3 rounded-lg border border-purple-100 shadow-sm text-sm">
-                 <span className="text-gray-600">Loss (1 lb/wk)</span>
-                 <span className="font-bold text-purple-900">{results.weightLoss} cal</span>
-               </div>
-               <div className="flex justify-between bg-white p-3 rounded-lg border border-purple-100 shadow-sm text-sm">
-                 <span className="text-gray-600">Mild Loss (0.5 lb/wk)</span>
-                 <span className="font-bold text-purple-900">{results.mildLoss} cal</span>
-               </div>
-               <div className="flex justify-between bg-white p-3 rounded-lg border border-purple-100 shadow-sm text-sm">
-                 <span className="text-gray-600">Mild Gain (0.5 lb/wk)</span>
-                 <span className="font-bold text-purple-900">{results.mildGain} cal</span>
-               </div>
+            <div className="results-goals-column">
+              <h4 className="goals-title">Adjusted Goals</h4>
+              <div className="goal-card">
+                <span className="goal-label">Loss (1 lb/wk)</span>
+                <span className="goal-value">{results.weightLoss} cal</span>
+              </div>
+              <div className="goal-card">
+                <span className="goal-label">Mild Loss (0.5 lb/wk)</span>
+                <span className="goal-value">{results.mildLoss} cal</span>
+              </div>
+              <div className="goal-card">
+                <span className="goal-label">Mild Gain (0.5 lb/wk)</span>
+                <span className="goal-value">{results.mildGain} cal</span>
+              </div>
             </div>
 
           </div>
         </div>
       )}
     </div>
-    );
+  );
 };
 
 export default TDEECalculator;

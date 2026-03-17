@@ -1,13 +1,16 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate} from 'react-router-dom';
 import { api } from '../services/api';
-import styles from './AdminDashboard.module.css'; 
+import styles from './EditRecipe.module.css';
+import { useToast } from '../context/ToastContext';
 
 const EditRecipe = () => {
     const { id } = useParams(); 
     const navigate = useNavigate();
+
+    const { addToast } = useToast();
     
     const [isLoading, setIsLoading] = useState(true);
     const [recipeForm, setRecipeForm] = useState({
@@ -80,7 +83,7 @@ const EditRecipe = () => {
                 });
             } catch (err) {
                 console.error("Failed to fetch recipe for editing:", err);
-                alert("Couldn't find that recipe in the Vault.");
+                addToast('Could not Find That Recipe In The Vault', err, 'error');
                 navigate('/admin');
             } finally {
                 setIsLoading(false);
@@ -112,11 +115,12 @@ const EditRecipe = () => {
                     ...prev,
                     imageUrl: prev.imageUrl ? `${prev.imageUrl},${newUrls}` : newUrls
                 }));
-                alert('Images uploaded! Hit save to lock them in.');
+                addToast('Images uploaded!', 'success');
             }
         } catch (err) {
             console.error('Upload failed:', err);
-            alert('Failed to upload images.');
+            addToast('Upload failed:', err, 'error');
+
         }
     };
 
@@ -133,12 +137,11 @@ const EditRecipe = () => {
         try {
             const response = await api.updateRecipe(id, formattedData);
             if (response.success) {
-                alert('Recipe successfully updated!');
-                navigate('/admin'); 
+                addToast('Recipe Successfully Vaulted! ✨', 'success');
+                navigate('/admin', { state: { activeTab: 'manage' } });
             }
         } catch (err) {
-            console.error("Failed to update recipe:", err);
-            alert("The Vault rejected your edits. Check the console.");
+            addToast("Failed to update recipe:", err, 'error');
         }
     };
 
@@ -146,88 +149,104 @@ const EditRecipe = () => {
         return <div className={styles.adminContainer}><h2 style={{textAlign: 'center', marginTop: '50px'}}>Fetching Masterpiece...</h2></div>;
     }
 
-    return (
-        <div className={styles.adminContainer}>
-            <header className={styles.adminHeader}>
-                <h2>Edit Vault Entry #{id}</h2>
+return (
+    <div className={styles.adminContainer}>
+      <header className={styles.adminHeader}>
+        <h2>Edit Recipe #{id}</h2>
+        <p className={styles.editSubtitle}>Editing: <strong>{recipeForm.title}</strong></p>
+      </header>
+
+      <main className={styles.adminContentArea}>
+        <section className={styles.addRecipeSection}>
+          <form onSubmit={handleUpdateSubmit} className={styles.adminForm}>
+            
+            {/* The Status Toggle - A new addition for the Edit page! */}
+            <div className={styles.statusToggleBar}>
+                <span className={styles.statusLabel}>Current Status:</span>
                 <button 
-                    onClick={() => navigate('/admin')} 
-                    className={styles.deleteBtn} 
-                    style={{backgroundColor: '#6b7280'}}
+                    type="button"
+                    onClick={() => setRecipeForm(prev => ({...prev, isDraft: !prev.isDraft}))}
+                    className={recipeForm.isDraft ? styles.draftBadge : styles.publishBadge}
                 >
-                    Cancel & Return
+                    {recipeForm.isDraft ? 'DRAFT (Hidden)' : 'PUBLISHED (Live)'}
                 </button>
-            </header>
+            </div>
 
-            <main className={styles.adminContentArea}>
-                <section className={styles.addRecipeSection}>
-                    <form onSubmit={handleUpdateSubmit} className={styles.adminForm}>
-                        <div className={styles.formRow}>
-                            <div className={styles.formGroup}>
-                                <label>Recipe Title</label>
-                                <input type="text" name="title" value={recipeForm.title} onChange={handleFormChange} required />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label>Yields</label>
-                                <input type="text" name="yields" value={recipeForm.yields} onChange={handleFormChange} placeholder="e.g. 4 servings" />
-                            </div>
-                        </div>
+            <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label>Recipe Title</label>
+                  <input type="text" name="title" value={recipeForm.title} onChange={handleFormChange} required />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Yields</label>
+                  <input type="text" name="yields" value={recipeForm.yields} onChange={handleFormChange} placeholder="e.g. 4 servings" />
+                </div>
+            </div>
 
-                        <div className={styles.formGroup}>
-                            <label>Description</label>
-                            <textarea name="description" rows="2" value={recipeForm.description} onChange={handleFormChange} required />
-                        </div>
+            <div className={styles.formGroup}>
+                <label>Description</label>
+                <textarea name="description" rows="3" value={recipeForm.description} onChange={handleFormChange} required />
+            </div>
 
-                        <div className={styles.formRow}>
-                            <div className={styles.formGroup}>
-                                <label>Prep Time (mins)</label>
-                                <input type="number" name="prepTime" value={recipeForm.prepTime} onChange={handleFormChange} required />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label>Cook Time (mins)</label>
-                                <input type="number" name="cookTime" value={recipeForm.cookTime} onChange={handleFormChange} required />
-                            </div>
-                        </div>
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label>Prep Time (mins)</label>
+                <input type="number" name="prepTime" value={recipeForm.prepTime} onChange={handleFormChange} required />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Cook Time (mins)</label>
+                <input type="number" name="cookTime" value={recipeForm.cookTime} onChange={handleFormChange} required />
+              </div>
+            </div>
 
-                        <div className={styles.formRow}>
-                            <div className={styles.formGroup}>
-                                <label>Ingredients (One per line)</label>
-                                <textarea name="ingredients" rows="6" value={recipeForm.ingredients} onChange={handleFormChange} required />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label>Instructions (One per line)</label>
-                                <textarea name="instructions" rows="6" value={recipeForm.instructions} onChange={handleFormChange} required />
-                            </div>
-                        </div>
+            <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                    <label>Ingredients</label>
+                    <textarea name="ingredients" rows="8" value={recipeForm.ingredients} onChange={handleFormChange} required />
+                </div>
+                <div className={styles.formGroup}>
+                    <label>Instructions</label>
+                    <textarea name="instructions" rows="8" value={recipeForm.instructions} onChange={handleFormChange} required />
+                </div>
+            </div>
 
-                        <div className={styles.formRow}>
-                            <div className={styles.formGroup}>
-                                <label>Macros & Micros</label>
-                                <textarea name="nutritionInfo" rows="6" value={recipeForm.nutritionInfo} onChange={handleFormChange} required />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label>Oil-Free Rationale / Notes</label>
-                                <textarea name="notes" rows="6" value={recipeForm.notes} onChange={handleFormChange} required />
-                            </div>
-                        </div>
+            <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                    <label>Nutrition Info</label>
+                    <textarea name="nutritionInfo" rows="6" value={recipeForm.nutritionInfo} onChange={handleFormChange} required />
+                </div>
+                <div className={styles.formGroup}>
+                    <label>Oil-Free Rationale / Notes</label>
+                    <textarea name="notes" rows="6" value={recipeForm.notes} onChange={handleFormChange} required />
+                </div>
+            </div>
 
-                        <div className={styles.formRow}>
-                            <div className={styles.formGroup}>
-                                <label>Image URLs (Comma separated)</label>
-                                <input type="text" name="imageUrl" value={recipeForm.imageUrl} onChange={handleFormChange} />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label>Upload Additional Images</label>
-                                <input type="file" multiple accept="image/*" onChange={handleImageUpload} style={{ padding: '10px 0' }} />
-                            </div>
-                        </div>
+            <div className={styles.formGroup}>
+                <label>Image URLs (Comma separated)</label>
+                <input 
+                    type="text" 
+                    name="imageUrl" 
+                    value={recipeForm.imageUrl} 
+                    onChange={handleFormChange} 
+                />
+            </div>
 
-                        <button type="submit" className={styles.saveBtn}>Update Masterpiece</button>
-                    </form>
-                </section>
-            </main>
-        </div>
-    );
+            <div className={styles.formActions}>
+                <button 
+                    type="button" 
+                    // pass a state object telling the next page to open the 'manage' tab
+                    onClick={() => navigate('/admin', { state: { activeTab: 'manage' } })} 
+                    className={styles.cancelBtn}
+                >
+                    Cancel
+                </button>                
+                <button type="submit" className={styles.saveBtn}>Update Recipe</button>
+            </div>
+          </form>
+        </section>
+      </main>
+    </div>
+  );
 };
 
 export default EditRecipe;

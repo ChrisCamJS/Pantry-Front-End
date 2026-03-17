@@ -7,6 +7,8 @@ import NutritionPanel from '../components/NutritionPanel';
 // PURPOSE: Fetches and displays a single recipe from the Headless PHP API.
 // ============================================================================
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 const RecipeDetails = () => {
   // --- STATE & ROUTING ---
   const { id } = useParams();
@@ -30,6 +32,12 @@ const RecipeDetails = () => {
 
     fetchRecipe();
   }, [id]);
+
+    const targetImage = recipe?.imageUrl || recipe?.image_url; 
+
+    const fullImageUrl = targetImage 
+        ? (targetImage.startsWith('http') ? targetImage : `${API_URL}${targetImage}`)
+        : '/belle-house-fiesta-bowl.jpg'; // Optional fallback
 
   // --- CONDITIONAL RENDERING (Guards) ---
 
@@ -70,7 +78,9 @@ const RecipeDetails = () => {
           &larr; Back to Recipe Grid
         </Link>
       </div>
-
+      <div className='p-1 w-full'>
+        <img src={fullImageUrl} alt={recipe.title || 'A glorious WFPB meal'} style={{ width: '100%', height: 'auto', borderRadius: '8px' }} />
+      </div>
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
         <header className="bg-gradient-to-r from-purple-800 to-indigo-900 px-6 py-10 sm:px-10 text-white text-center sm:text-left">
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4">

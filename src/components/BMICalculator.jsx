@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-
+import './BMICalculator.css';
 // ============================================================================
 // COMPONENT: BMICalculator
 // PURPOSE: A dynamic, real-time Body Mass Index calculator.
 // We are using React State to calculate the BMI instantly as the user types,
 // removing the need for clunky form submissions or page reloads.
 // ============================================================================
-
 const BMICalculator = () => {
   // --- STATE MANAGEMENT ---
   // We need to store three pieces of input from the user: Height (feet and inches) and Weight.
@@ -61,95 +60,92 @@ const BMICalculator = () => {
   }, [heightFt, heightIn, weightLbs]); // Dependency array: watch these variables!
 
   // --- THE UI (Render) ---
-  return (
-        <div className="max-w-2xl mx-auto">
-            
-            {/* Header Section */}
-            <div className="flex justify-between items-end mb-4 border-b pb-4">
-                <div>
-                <h2 className="text-2xl font-bold text-gray-800">1. Body Composition (BMI)</h2>
-                <p className="text-gray-500 text-sm mt-1">
-                    Enter your height and weight to calculate your Body Mass Index.
-                </p>
-                </div>
-                <button 
-                onClick={() => setShowDetails(!showDetails)}
-                className="text-sm font-semibold text-cyan-600 hover:text-cyan-800 transition-colors"
-                >
-                {showDetails ? 'Hide Details ▲' : 'How it Works ▼'}
-                </button>
-            </div>
-
-            {/* Educational Dropdown */}
-            {showDetails && (
-                <div className="bg-cyan-50 border border-cyan-100 rounded-lg p-4 mb-6 text-sm text-cyan-900 animate-fade-in">
-                <h4 className="font-bold mb-2">The Formula:</h4>
-                <p className="font-mono bg-white p-2 rounded border border-cyan-200 mb-3 inline-block">
-                    BMI = (Weight in lbs / (Height in inches × Height in inches)) × 703
-                </p>
-                <h4 className="font-bold mb-1">Example Calculation:</h4>
-                <p>
-                    For example, if an active runner is <strong>5 foot 10 inches</strong> (70 total inches) and weighs <strong>150 lbs</strong>:
-                    <br />
-                    1. Multiply height in inches by itself: (70 × 70) = 4,900
-                    <br />
-                    2. Divide weight by that number: (150 / 4,900) = 0.0306
-                    <br />
-                    3. Multiply by the conversion factor: (0.0306 × 703) = <strong>21.5 (Healthy Weight)</strong>
-                </p>
-                </div>
-            )}
-
-            {/* Input Form */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                <div>
-                <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">Height (ft)</label>
-                <input 
-                    type="number" 
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-cyan-500 outline-none transition-all"
-                    placeholder="5"
-                    value={heightFt}
-                    onChange={(e) => setHeightFt(e.target.value)}
-                />
-                </div>
-                <div>
-                <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">Height (in)</label>
-                <input 
-                    type="number" 
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-cyan-500 outline-none transition-all"
-                    placeholder="10"
-                    min="0" max="11"
-                    value={heightIn}
-                    onChange={(e) => setHeightIn(e.target.value)}
-                />
-                </div>
-                <div>
-                <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">Weight (lbs)</label>
-                <input 
-                    type="number" 
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-cyan-500 outline-none transition-all"
-                    placeholder="150"
-                    value={weightLbs}
-                    onChange={(e) => setWeightLbs(e.target.value)}
-                />
-                </div>
-            </div>
-
-            {/* Auto-Render Results */}
-            {bmi && (
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-emerald-100 p-5 rounded-xl shadow-inner text-center">
-                <div className="text-gray-600 mb-1">Your current BMI is</div>
-                <div className="text-4xl font-extrabold text-emerald-600 mb-2">{bmi}</div>
-                <div className="inline-block px-4 py-1 bg-white rounded-full text-sm font-bold text-gray-700 shadow-sm mb-3 border border-emerald-100">
-                    {category}
-                </div>
-                <p className="text-xs text-gray-500 max-w-md mx-auto">
-                    A healthy BMI range is typically 18.5 to 24.9. Remember, this formula doesn't account for muscle mass, so it's best used as a general baseline rather than a strict rule.
-                </p>
-                </div>
-            )}
+return (
+    <div className="calculator-wrapper">
+      
+      {/* Header Section */}
+      <div className="calc-header">
+        <div className="calc-title-group">
+          <h2 className="calc-main-title">1. Body Composition (BMI)</h2>
+          <p className="calc-subtitle">
+            Enter your height and weight to calculate your Body Mass Index.
+          </p>
         </div>
-    );
+        <button 
+          onClick={() => setShowDetails(!showDetails)}
+          className="details-toggle-btn"
+        >
+          {showDetails ? 'Hide Details ▲' : 'How it Works ▼'}
+        </button>
+      </div>
+
+      {/* Educational Dropdown */}
+      {showDetails && (
+        <div className="edu-dropdown animate-fade-in">
+          <h4 className="edu-label">The Formula:</h4>
+          <code className="edu-formula">
+            BMI = (Weight in lbs / (Height in inches × Height in inches)) × 703
+          </code>
+          <h4 className="edu-label">Example Calculation:</h4>
+          <p className="edu-text">
+            For example, if an active runner is <strong>5 foot 10 inches</strong> (70 total inches) and weighs <strong>150 lbs</strong>:
+            <span className="step-list">
+              <span><strong>1.</strong> Multiply height in inches by itself: (70 × 70) = 4,900</span>
+              <span><strong>2.</strong> Divide weight by that number: (150 / 4,900) = 0.0306</span>
+              <span><strong>3.</strong> Multiply by the conversion factor: (0.0306 × 703) = <strong className="highlight-success">21.5 (Healthy Weight)</strong></span>
+            </span>
+          </p>
+        </div>
+      )}
+
+      {/* Input Form */}
+      <div className="input-grid">
+        <div className="input-group">
+          <label className="input-label">Height (ft)</label>
+          <input 
+            type="number" 
+            className="styled-input"
+            placeholder="5"
+            value={heightFt}
+            onChange={(e) => setHeightFt(e.target.value)}
+          />
+        </div>
+        <div className="input-group">
+          <label className="input-label">Height (in)</label>
+          <input 
+            type="number" 
+            className="styled-input"
+            placeholder="10"
+            min="0" max="11"
+            value={heightIn}
+            onChange={(e) => setHeightIn(e.target.value)}
+          />
+        </div>
+        <div className="input-group">
+          <label className="input-label">Weight (lbs)</label>
+          <input 
+            type="number" 
+            className="styled-input"
+            placeholder="150"
+            value={weightLbs}
+            onChange={(e) => setWeightLbs(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* Auto-Render Results */}
+      {bmi && (
+        <div className="results-container">
+          <div className="results-label">Your current BMI is</div>
+          <div className="results-value">{bmi}</div>
+          <div className="results-badge">{category}</div>
+          <p className="results-disclaimer">
+            A healthy BMI range is typically 18.5 to 24.9. Remember, this formula doesn't account for muscle mass, so it's best used as a general baseline rather than a strict rule.
+          </p>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default BMICalculator;

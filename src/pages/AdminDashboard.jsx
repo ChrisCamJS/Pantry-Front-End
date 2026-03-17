@@ -1,9 +1,10 @@
 // src/pages/AdminDashboard.jsx
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../services/api';
 import styles from './AdminDashboard.module.css';
+import { useToast } from '../context/ToastContext';
 
 
 /**
@@ -12,14 +13,17 @@ import styles from './AdminDashboard.module.css';
  * Includes forms for adding recipes and lists for moderation.
  */
 const AdminDashboard = () => {
-  const navigate = useNavigate();
+  const { addToast } = useToast();
 
-  const [activeTab, setActiveTab] = useState('add');
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'add');
 
   // state for Manage Recipes
   const [recipes, setRecipes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // <-- Items per page can be adjusted here
+  const itemsPerPage = 9; // <-- Items per page can be adjusted here
 
   const [rawPaste, setRawPaste] = useState('');
   const [recipeForm, setRecipeForm] = useState({
@@ -91,12 +95,13 @@ const AdminDashboard = () => {
               ...prev,
               imageUrl: prev.imageUrl ? `${prev.imageUrl},${newUrls}` : newUrls
             }));
-            alert('Images successfully uploaded to the Vault!');
+            addToast('Images successfully uploaded to the Vault!', 'success');
+
           }
         }
         catch (err) {
           console.error('Upload failed:', err);
-          alert('Failed to upload images. Check the console.');
+          addToast('Upload failed:', err, 'error');
         }
       }
 
@@ -114,17 +119,16 @@ const AdminDashboard = () => {
         try {
           const response = await api.addRecipe(formattedData);
           if (response.success) {
-              alert('Masterpiece successfully Vaulted!');
+              addToast('Masterpiece successfully Vaulted! ✨', 'success');
               // Clear it out for the next one
               setRawPaste('');
-              setRecipeForm({ title: '', description: '', yields: '', prepTime: '', cookTime: '', ingredients: '', instructions: '', nutritionInfo: '', notes: '', imageUrl: '' });
+              setRecipeForm({ title: '', description: '', yields: '', prepTime: '', cookTime: '', ingredients: '', instructions: '', nutritionInfo: '', notes: '', imageUrl: '', isDraft: false});
               // Re-fetch the manage list behind the scenes so it's ready
               loadRecipes();
           }
         }
         catch (err) {
-          console.error("Failed to add recipe:", err);
-          alert("The Vault rejected your offering. Check the console.");
+          addToast("Failed to add recipe:", err, 'error');
         }
       }
     // fetch the recipes when switching to manage recipes tab
@@ -138,10 +142,10 @@ const AdminDashboard = () => {
       try {
         const response = await api.getRecipes();
         // adjust this
-        setRecipes(response || response.data);
+        setRecipes(response);
       }
       catch (err) {
-        console.error("Failed to load the recipes", err);
+        addToast("Failed to load the recipes", err, 'error');
       }
     }
 
@@ -150,18 +154,18 @@ const AdminDashboard = () => {
     };
 
   const handleDelete = async (id) => {
-    // a quick idiot check before we nuke it
     if (window.confirm("Are you sure you want to delete this recipe?")) {
       try {
         const response = await api.deleteRecipe(id);
-        if (response.success) {
-          // wipe it from local state first
-          setRecipes(prev => prev.filter(recipe => recipe.id) !== id);
+        if (response?.success) {
+          setRecipes(prev => prev.filter(recipe => recipe.id !== id));
+          
+          addToast("Recipe successfully banished from the Vault!", 'success');
         }
       }
       catch (err) {
-          console.error("Failed to delete the recipe:", err);
-            alert("Couldn't delete the recipe. The Vault resists!");
+          addToast("The Vault resists! Failed to delete the recipe.", 'error');
+          console.error("Delete error:", err);
       }
     }
   };
@@ -181,15 +185,16 @@ const AdminDashboard = () => {
             ));
         }
     } catch (err) {
-        console.error("Failed to toggle draft status:", err);
-        alert("Couldn't update the draft status.");
+        addToast("Failed to toggle draft status:", err, 'error')
     }
   };
 
   // Pagination math
   const indexOfLastRecipe = currentPage * itemsPerPage;
   const indexOfFirstRecipe = indexOfLastRecipe - itemsPerPage;
-  const currentRecipes = recipes.slice(recipes.length / itemsPerPage);
+
+  const sortedRecipes = [...recipes].sort((a, b) => b.id - a.id);
+  const currentRecipes = sortedRecipes.slice(indexOfFirstRecipe, indexOfLastRecipe);
   const totalPages = Math.ceil(recipes.length / itemsPerPage);
 
   return (
@@ -219,8 +224,9 @@ const AdminDashboard = () => {
             
             {/* The Magic Paste Zone */}
             <div className={styles.pasteZone}>
-                <label>Raw Recipe Paste</label>
+                <label className={styles.parseLabel}>Paste Recipe Data Below...</label>
                 <textarea 
+                    className={styles.parseInput}
                     rows="8" 
                     placeholder="Paste your full recipe format here (Title: ..., Description: ..., Ingredients: ...)"
                     value={rawPaste}
@@ -312,7 +318,7 @@ const AdminDashboard = () => {
           </section>
                   ) : (
           <section className={styles.manageRecipes}>
-            <h3>Manage Vault Inventory</h3>
+            <h3>Manage Veggie Vault Inventory</h3>
             
             {recipes.length === 0 ? (
                 <p>Loading your culinary masterpieces...</p>

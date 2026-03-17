@@ -1,6 +1,8 @@
 import React from 'react';
 import Header from './Header';
 import ScrollToTop from './ScrollToTop';
+import Footer from './Footer';
+
 /**
  * Layout Component
  * Acts as the master wrapper for the entire application.
@@ -14,12 +16,7 @@ const Layout = ({children}) => {
                 <main className='main-content'>
                     {children}
                 </main>
-
-                <footer>
-                    <p>
-                        &copy; {new Date().getFullYear()} The Veggie Vault 2026. All rights reserved.
-                    </p>
-                </footer>
+                <Footer />
                 <ScrollToTop />
          </div>
     );
