@@ -1,28 +1,42 @@
 import React from 'react';
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import './RecipeCard.css';
 
 /**
  * RecipeCard Component
- * Displays a summary of a single recipe.
+ * Displays a summary of a single recipe, now with pristine relational data!
  * @param {Object} recipe - The recipe data object
  */
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
-const Recipecard = ({recipe}) => {
-    const {title, description, cookTime, prepTime, isOilFree, imageUrl, averageRating, nutritionInfo, ingredients, notes, yields, ratingCount, authorId} = recipe;
+const RecipeCard = ({ recipe }) => {
+    // Destructuring API payload
+    const { 
+        id, 
+        title, 
+        description, 
+        cook_time_mins, 
+        prep_time_mins, 
+        is_oil_free, 
+        image_url,
+        imageUrl,
+        calories,
+        protein_g,
+        carbs_g,
+        fat_g
+    } = recipe;
 
-    const targetImage = recipe?.imageUrl || recipe?.image_url; 
+    const targetImage = imageUrl ||image_url; 
 
     const fullImageUrl = targetImage 
         ? (targetImage.startsWith('http') ? targetImage : `${API_URL}${targetImage}`)
-        : '/belle-house-fiesta-bowl.jpg'; // Optional fallback
+        : '/belle-house-fiesta-bowl.jpg'; // The fallback image
 
     return (
         <div className='recipe-card'>
             <div className='recipe-card-image'>
-                <img src={fullImageUrl} alt={recipe.title} style={{width: '100%', height: 'auto'}} />
+                <img src={fullImageUrl} alt={title} style={{width: '100%', height: 'auto'}} />
             </div>
 
             <div className='recipe-card-content'>
@@ -30,25 +44,38 @@ const Recipecard = ({recipe}) => {
                     {title}
                 </h3>
                 <p className='recipe-description'>
-                    {description.slice(0, 200) + '...'}
+                    {/* safety check: ensures it only slices if description exists */}
+                    {description ? description.slice(0, 200) + '...' : 'A delicious plant-based creation.'}
                 </p>
-                                <div className='recipe-stats'>
-                    <span className='prep-time'>⏱️ Prep: {prepTime}m</span>
-                    <span className='cook-time'>🔥 Cook: {cookTime}m</span>
-                    {isOilFree && (
+
+                {/* Macro Display */}
+                {(calories || protein_g) && (
+                    <div className='recipe-macros' style={{ display: 'flex', gap: '12px', fontSize: '0.85rem', margin: '10px 0', fontWeight: '600', color: '#4a5568' }}>
+                        <span>🔥 {calories} kcal</span>
+                        <span>💪 {protein_g}g P</span>
+                        <span>🥖 {carbs_g}g C</span>
+                        <span>🥑 {fat_g}g F</span>
+                    </div>
+                )}
+
+                <div className='recipe-stats'>
+                    <span className='prep-time'>⏱️ Prep: {prep_time_mins || 0}m</span>
+                    <span className='cook-time'>🔥 Cook: {cook_time_mins || 0}m</span>
+                    
+                    {/* MySQL returns booleans as 1 or 0, so we convert it to a true boolean */}
+                    {Boolean(Number(is_oil_free)) && (
                         <div className='oil-free-badge'>
                             🌿 Oil-Free
                         </div>
                     )}
                 </div>
-                <Link to={`/recipe/${recipe.id}`} className='view-recipe-btn'>
+                
+                <Link to={`/recipe/${id}`} className='view-recipe-btn'>
                     View Full Recipe
                 </Link>
             </div>
-
-
         </div>
-    )
+    );
 }
 
-export default Recipecard;
+export default RecipeCard;

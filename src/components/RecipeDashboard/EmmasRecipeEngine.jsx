@@ -62,7 +62,7 @@ const processChatTurn = async (newUserMessageText, isOilFreeSetting) => {
                             setRecipeImage(`data:image/jpeg;base64,${base64Data}`);
                         }
                     })
-                    .catch(err => console.error("The image generation threw a wobbly:", err));
+                    .catch(err => console.error("The image generation threw a pear:", err));
             }
 
             const modelReplyText = await sendChatMessage(updatedHistory, systemInstructions);
@@ -74,7 +74,7 @@ const processChatTurn = async (newUserMessageText, isOilFreeSetting) => {
 
         } catch (err) {
             console.error("Dashboard caught an error:", err);
-            setError(err.message || "Something went pear-shaped. Try again.");
+            setError(err.message || "Something went wrong. Try again.");
         } finally {
             setIsLoading(false);
         }

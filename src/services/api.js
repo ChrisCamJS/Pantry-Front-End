@@ -1,16 +1,13 @@
-
-// Grab the base url from .env file
+// base url from .env file
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 /**
  * A generic helper function to handle fetch requests and catch errors.
- * Saves from writing the same try/catch blocks a hundred times.
- * * @param {string} endpoint - The API route (e.g., '/recipes')
+ * @param {string} endpoint - The API route (e.g., '/recipes')
  * @param {Object} options - Fetch options (method, headers, body)
  */
-
 async function fetchWrapper(endpoint, options = {}) {
-    // check if we are sending files
+    // check if we are sending files (like images)
     const isFormData = options.body instanceof FormData;
     
     // Conditionally build our headers
@@ -28,65 +25,46 @@ async function fetchWrapper(endpoint, options = {}) {
 
         const data = await response.json();
 
-        if(!response.ok){
-            throw new Error(data.message || 'Something went pear-shaped with the API!');
+        if (!response.ok) {
+            throw new Error(data.error || data.message || 'Something went wrong with the API!');
         }
         return data;
-    }
-    catch (error) {
-        console.error(`API Error at ${endpoint}`, error);
+    } catch (error) {
+        console.error(`API Error at ${endpoint}:`, error);
         throw error;
     }
 }
 
 export const api = {
-    /**
-   * Fetch all recipes for the main grid.
-   */
+    // CORE RECIPE CRUD
     getRecipes: () => {
-        return fetchWrapper('/recipes', {method: 'GET'});
+        return fetchWrapper('/recipes', { method: 'GET' });
     },
+    
     getRecipesById: (id) => {
-        return fetchWrapper(`/recipes/single?id=${id}`, {method: 'GET'});
+        return fetchWrapper(`/recipes/single?id=${id}`, { method: 'GET' });
     },
-/**
-    * Securely add a new recipe to the database via the Admin Vault.
-    * @param {Object} recipeData - The complete recipe object
-*/
-
-addRecipe: (recipeData) => {
-    return fetchWrapper('/recipes', {
-        method: 'POST',
-        body: JSON.stringify(recipeData),
-    });
-},
-// auth routes 
-    login: (credentials) => {
-        return fetchWrapper('/login', {
+    
+    addRecipe: (recipeData) => {
+        return fetchWrapper('/recipes', {
             method: 'POST',
-            body: JSON.stringify(credentials),
+            body: JSON.stringify(recipeData),
         });
     },
 
-    // logout 
-    logout: () => {
-        return fetchWrapper('/logout', {
-            method: 'POST',
+    updateRecipe: (id, recipeData) => {
+        // Our PHP backend looks for the ID in the payload, so we spread it in here to be safe!
+        return fetchWrapper('/recipes', {
+            method: 'PUT',
+            body: JSON.stringify({ ...recipeData, id }), 
         });
     },
-    /**
-     * Permanently delete a recipe
-     *  @param {number} id 
-     */
+
     deleteRecipe: (id) => {
-       return fetchWrapper(`${API_BASE_URL}/recipes?id=${id}`, { method: 'DELETE' })
-        // return fetchWrapper(`${API_BASE_URL}/recipes/${id}`, { method: 'DELETE' })
+        return fetchWrapper(`/recipes?id=${id}`, { method: 'DELETE' });
     },
-    /**
-     * Toggle a recipe's draft status
-     * @param {number} id 
-     * @param {boolean} isDraft - true hides it, false publishes it
-     */
+
+    // RECIPE MANAGEMENT & EXTRAS
     toggleDraft: (id, isDraft) => {
         return fetchWrapper('/recipes/draft', {
             method: 'PUT',
@@ -94,35 +72,21 @@ addRecipe: (recipeData) => {
         });
     },
 
-    // Image upload route
     uploadImages: (formData) => {
         return fetchWrapper('/upload', {
             method: 'POST',
             body: formData,
         });
     },
-    /**
-     * Update an existing recipe
-     * @param {number} id - The ID of the recipe to update
-     * @param {Object} recipeData - The updated recipe data
-     */
-    updateRecipe: (id, recipeData) => {
-        return fetchWrapper(`/recipes?id=${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(recipeData),
-        });
-    },
-    /**
-     * Allow Premium users to save a generated recipe from the Engine directly to the vault.
-     * @param {Object} recipeData - The generated recipe object
-     */
+
     saveGeneratedRecipe: (recipeData) => {
         return fetchWrapper('/recipes/save-generated', {
             method: 'POST',
             body: JSON.stringify(recipeData),
         });
     },
-    // auth routes 
+
+    // AUTHENTICATION & USERS
     login: (credentials) => {
         return fetchWrapper('/login', {
             method: 'POST',
@@ -130,10 +94,11 @@ addRecipe: (recipeData) => {
         });
     },
 
-    // --- THE TOKEN ROUTE ---
-    deductToken: () => {
-        return fetchWrapper('/users/deduct-token', {
-            method: 'POST',
-        });
+    logout: () => {
+        return fetchWrapper('/logout', { method: 'POST' });
     },
-}
+
+    deductToken: () => {
+        return fetchWrapper('/users/deduct-token', { method: 'POST' });
+    },
+};
