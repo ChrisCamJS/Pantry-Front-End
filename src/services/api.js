@@ -98,7 +98,10 @@ export const api = {
         return fetchWrapper('/logout', { method: 'POST' });
     },
 
-    deductToken: () => {
-        return fetchWrapper('/users/deduct-token', { method: 'POST' });
+    deductToken: (cost = 1) => {
+        return fetchWrapper('/users/deduct-token', { 
+            method: 'POST',
+            body: JSON.stringify({ cost })
+        });
     },
 };

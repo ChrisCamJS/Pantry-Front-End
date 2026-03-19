@@ -32,12 +32,15 @@ export const AuthProvider = ({children}) => {
         localStorage.removeItem('vault_user');
     }
 
-    // --- THE NEW TOKEN MANAGER ---
-    const spendToken = async () => {
+    // --- THE UPGRADED TOKEN MANAGER ---
+    // Now accepts a specific cost, defaulting to 1 for full recipes
+    const spendToken = async (cost = 1) => {
         if (!user) return { success: false, message: "No user found" };
 
         try {
-            const response = await api.deductToken();
+            // Pass the specific cost down to the API service
+            const response = await api.deductToken(cost);
+            
             if (response.success) {
                 // Clone the user object, update the token count, and save it!
                 const updatedUser = { ...user, generation_tokens: response.tokensRemaining };
@@ -47,13 +50,11 @@ export const AuthProvider = ({children}) => {
             }
         } catch (error) {
             console.error("Token deduction threw a strop:", error);
-            // If they are out of tokens, the API should throw an error we catch here
             return { success: false, message: error.message };
         }
     }
 
     return (
-        // Make sure to add spendToken to the provider value!
         <AuthContext.Provider value={{ user, login: loginContext, logout: logoutContext, spendToken }}>
             {children}
         </AuthContext.Provider>

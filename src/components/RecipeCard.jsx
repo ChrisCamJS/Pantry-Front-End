@@ -16,15 +16,16 @@ const RecipeCard = ({ recipe }) => {
         id, 
         title, 
         description, 
-        cook_time_mins, 
-        prep_time_mins, 
-        is_oil_free, 
+        cookTime, 
+        prepTime, 
+        isOilFree, 
         image_url,
         imageUrl,
         calories,
         protein_g,
         carbs_g,
-        fat_g
+        fat_g,
+        createdAt
     } = recipe;
 
     const targetImage = imageUrl ||image_url; 
@@ -59,11 +60,11 @@ const RecipeCard = ({ recipe }) => {
                 )}
 
                 <div className='recipe-stats'>
-                    <span className='prep-time'>⏱️ Prep: {prep_time_mins || 0}m</span>
-                    <span className='cook-time'>🔥 Cook: {cook_time_mins || 0}m</span>
+                    <span className='prep-time'>⏱️ Prep: {prepTime || 0}m</span>
+                    <span className='cook-time'>🔥 Cook: {cookTime || 0}m</span>
                     
                     {/* MySQL returns booleans as 1 or 0, so we convert it to a true boolean */}
-                    {Boolean(Number(is_oil_free)) && (
+                    {Boolean(Number(isOilFree)) && (
                         <div className='oil-free-badge'>
                             🌿 Oil-Free
                         </div>

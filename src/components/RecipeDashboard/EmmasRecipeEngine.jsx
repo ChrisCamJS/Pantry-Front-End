@@ -1,6 +1,6 @@
 // src/pages/EmmasRecipeEngine.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getSystemInstructions } from '../../utils/promptBuilder';
 import { sendChatMessage, generateRecipeImage } from '../../services/geminiApi'; 
 import { useAuth } from '../../context/AuthContext';
@@ -9,9 +9,7 @@ import RecipeResult from './RecipeResult';
 import './EmmasRecipeEngine.css';
 
 const EmmasRecipeEngine = () => {
-    // Grab the logged-in user and the spendToken function!
     const { user, spendToken } = useAuth();
-    // Fallback to 'Guest' just in case
     const currentUserName = user?.username || 'Guest';
 
     const [chatHistory, setChatHistory] = useState([]);
@@ -22,14 +20,34 @@ const EmmasRecipeEngine = () => {
     const [followUpText, setFollowUpText] = useState('');
     const [currentIsOilFree, setCurrentIsOilFree] = useState(true);
 
-    const [isChatMode, setIsChatMode] = useState(false);
+    // 3-way state -> 'full', 'draft', or 'chat'
+    const [engineMode, setEngineMode] = useState('full');
 
-const processChatTurn = async (newUserMessageText, isOilFreeSetting) => {
+    // Bottom Bin Button State
+    const [showBottomBin, setShowBottomBin] = useState(false);
+
+    useEffect(() => {
+    const handleScroll = () => {
+        // If they've scrolled down more than 300px, show the button
+        if (window.scrollY > 300) {
+            setShowBottomBin(true);
+        } else {
+            setShowBottomBin(false);
+        }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    
+    // The cleanup
+    return () => window.removeEventListener('scroll', handleScroll);
+}, []);
+
+    const processChatTurn = async (newUserMessageText, isOilFreeSetting) => {
         
-        // --- STEP A & B: THE BOUNCER AND THE TOLLBOOTH (RECIPES ONLY) ---
-        if (!isChatMode) {
+        // --- THE BOUNCER AND THE TOLLBOOTH ---
+        if (engineMode === 'full') {
             if (user?.generation_tokens <= 0) {
-                alert("Oh dear, love! Your token stash is completely empty. Time to top up to keep generating full recipes with images.");
+                alert("Oh dear, love! Your token stash is completely empty. Switch to a Free mode or top up to keep generating images.");
                 return; 
             }
 
@@ -52,10 +70,10 @@ const processChatTurn = async (newUserMessageText, isOilFreeSetting) => {
         ];
 
         try {
-            const systemInstructions = getSystemInstructions(isOilFreeSetting, currentUserName, isChatMode);
+            const isChatActive = engineMode === 'chat';
+            const systemInstructions = getSystemInstructions(isOilFreeSetting, currentUserName, isChatActive);
             
-            // ONLY generate an image if they are paying for a recipe!
-            if (!isChatMode && chatHistory.length === 0) {
+            if (engineMode === 'full' && chatHistory.length === 0) {
                 generateRecipeImage(newUserMessageText)
                     .then(base64Data => {
                         if (base64Data) {
@@ -79,10 +97,16 @@ const processChatTurn = async (newUserMessageText, isOilFreeSetting) => {
             setIsLoading(false);
         }
     };
+
     const handleInitialGenerate = (userRequest, isOilFree) => {
         setChatHistory([]);
         setRecipeImage(null); 
-        processChatTurn(`I want a recipe for: ${userRequest}`, isOilFree);
+        
+        const formattedRequest = engineMode === 'chat' 
+            ? userRequest 
+            : `I want a recipe for: ${userRequest}`;
+            
+        processChatTurn(formattedRequest, isOilFree);
     };
 
     const handleFollowUpSubmit = (e) => {
@@ -94,56 +118,64 @@ const processChatTurn = async (newUserMessageText, isOilFreeSetting) => {
         processChatTurn(messageToSend, currentIsOilFree);
     };
 
-    // A quick check to see if they are broke, so we can disable UI elements
     const isBroke = user?.generation_tokens <= 0;
+
+    const getModeButtonStyle = (modeName) => {
+        const isSelected = engineMode === modeName;
+        return {
+            cursor: 'pointer',
+            padding: '0.75rem 1rem',
+            borderRadius: '8px',
+            border: `2px solid ${isSelected ? '#805ad5' : '#e2e8f0'}`,
+            backgroundColor: isSelected ? '#faf5ff' : 'white',
+            color: isSelected ? '#805ad5' : '#4a5568',
+            fontWeight: isSelected ? 'bold' : 'normal',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            transition: 'all 0.2s ease-in-out',
+            flex: '1',
+            justifyContent: 'center'
+        };
+    };
+
+    // A helper function so we don't repeat our binning logic
+    const handleResetEngine = () => {
+        setChatHistory([]);
+        setRecipeImage(null);
+        setFollowUpText('');
+        setError(null);
+    };
 
     return (
         <div className="recipe-dashboard-container">
             <header className="dashboard-header">
-                <h2>Emma's Premium Recipe Generator</h2>
+                <h2>Emma's Premium Engine</h2>
                 <p>Strictly WFPB. Full Macros. Live Banter Enabled.</p>
             </header>
 
             {chatHistory.length === 0 && (
                 <>
-                    {/* The Mode Toggle */}
-                    <div className="mode-toggle-container" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center' }}>
-                        <span style={{ fontWeight: !isChatMode ? 'bold' : 'normal', color: !isChatMode ? '#805ad5' : '#718096' }}>
-                            🍲 Recipe Generator (1 Token)
-                        </span>
-                        
-                        <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '50px', height: '24px' }}>
-                            <input 
-                                type="checkbox" 
-                                checked={isChatMode} 
-                                onChange={() => setIsChatMode(!isChatMode)} 
-                                style={{ opacity: 0, width: 0, height: 0 }}
-                            />
-                            <span className="slider round" style={{ 
-                                position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, 
-                                backgroundColor: isChatMode ? '#48bb78' : '#cbd5e0', 
-                                transition: '.4s', borderRadius: '34px' 
-                            }}>
-                                <span style={{
-                                    position: 'absolute', content: '""', height: '16px', width: '16px', 
-                                    left: isChatMode ? '30px' : '4px', bottom: '4px', backgroundColor: 'white', 
-                                    transition: '.4s', borderRadius: '50%'
-                                }} />
-                            </span>
+                    <div className="mode-selector-container" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+                        <label style={getModeButtonStyle('full')}>
+                            <input type="radio" name="engineMode" value="full" checked={engineMode === 'full'} onChange={(e) => setEngineMode(e.target.value)} style={{ display: 'none' }} />
+                            📸 Full Recipe (1 Token)
                         </label>
-                        
-                        <span style={{ fontWeight: isChatMode ? 'bold' : 'normal', color: isChatMode ? '#48bb78' : '#718096' }}>
+                        <label style={getModeButtonStyle('draft')}>
+                            <input type="radio" name="engineMode" value="draft" checked={engineMode === 'draft'} onChange={(e) => setEngineMode(e.target.value)} style={{ display: 'none' }} />
+                            📝 Text Draft (Free)
+                        </label>
+                        <label style={getModeButtonStyle('chat')}>
+                            <input type="radio" name="engineMode" value="chat" checked={engineMode === 'chat'} onChange={(e) => setEngineMode(e.target.value)} style={{ display: 'none' }} />
                             💬 Nutrition Natter (Free)
-                        </span>
+                        </label>
                     </div>
 
-                    {/* The Form */}
                     <RecipeForm 
                         onGenerate={handleInitialGenerate} 
                         isLoading={isLoading} 
-                        // Only lock them out if they are broke AND trying to use Recipe Mode
-                        isBroke={isBroke && !isChatMode} 
-                        isChatMode={isChatMode}
+                        isBroke={isBroke && engineMode === 'full'} 
+                        engineMode={engineMode}
                     />
                 </>
             )}
@@ -154,7 +186,32 @@ const processChatTurn = async (newUserMessageText, isOilFreeSetting) => {
                 </div>
             )}
 
-            <div className="chat-container" style={{ marginTop: '2rem' }}>
+            {chatHistory.length > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                    <button 
+                        onClick={handleResetEngine}
+                        disabled={isLoading}
+                        style={{ 
+                            background: '#fed7d7', 
+                            color: '#c53030', 
+                            border: '1px solid #fc8181', 
+                            padding: '0.5rem 1rem', 
+                            borderRadius: '6px', 
+                            cursor: isLoading ? 'not-allowed' : 'pointer', 
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            opacity: isLoading ? 0.6 : 1,
+                            transition: 'opacity 0.2s'
+                        }}
+                    >
+                        New Chat
+                    </button>
+                </div>
+            )}
+
+            <div className="chat-container" style={{ marginTop: '1rem' }}>
                 {chatHistory.map((msg, index) => {
                     if (msg.role === 'user') {
                         return (
@@ -168,6 +225,7 @@ const processChatTurn = async (newUserMessageText, isOilFreeSetting) => {
                                 key={index} 
                                 recipeMarkdown={msg.parts[0].text} 
                                 imageUrl={index === 1 ? recipeImage : null} 
+                                isDraft={engineMode === 'draft'} 
                             />
                         )
                     }
@@ -180,31 +238,45 @@ const processChatTurn = async (newUserMessageText, isOilFreeSetting) => {
                         type="text" 
                         value={followUpText}
                         onChange={(e) => setFollowUpText(e.target.value)}
-                        placeholder={isBroke ? "Out of tokens!" : "Talk back to Emma (e.g., 'Swap the lentils for chickpeas, please!')"}
-                        disabled={isLoading || isBroke}
-                        style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e0', backgroundColor: isBroke ? '#edf2f7' : 'white' }}
+                        placeholder={(isBroke && engineMode === 'full') ? "Out of tokens!" : "Talk back to Emma..."}
+                        disabled={isLoading || (isBroke && engineMode === 'full')}
+                        style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e0', backgroundColor: (isBroke && engineMode === 'full') ? '#edf2f7' : 'white' }}
                     />
                     <button 
                         type="submit" 
                         className="submit-btn" 
-                        disabled={isLoading || !followUpText.trim() || isBroke}
-                        style={{ cursor: (isLoading || isBroke) ? 'not-allowed' : 'pointer' }}
+                        disabled={isLoading || !followUpText.trim() || (isBroke && engineMode === 'full')}
+                        style={{ cursor: (isLoading || (isBroke && engineMode === 'full')) ? 'not-allowed' : 'pointer' }}
                     >
-                        {isLoading ? "Thinking..." : (isBroke ? "🪙 Skint" : "Send")}
+                        {isLoading ? "Thinking..." : ((isBroke && engineMode === 'full') ? "🪙 Skint" : "Send")}
                     </button>
                 </form>
             )}
             
-            {chatHistory.length > 0 && !isLoading && (
-                 <button 
-                    onClick={() => {
-                        setChatHistory([]);
-                        setRecipeImage(null);
-                    }}
-                    style={{ marginTop: '1rem', background: 'transparent', color: '#e53e3e', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-                 >
-                    Bin this and start a new recipe
-                 </button>
+            {/* THE ORIGINAL 'BIN IT' BUTTON */}
+            {chatHistory.length > 0 && !isLoading && showBottomBin && (
+                <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '1rem' }}>
+                    <button 
+                        onClick={handleResetEngine}
+                        disabled={isLoading}
+                        style={{ 
+                            background: '#fed7d7', 
+                            color: '#c53030', 
+                            border: '1px solid #fc8181', 
+                            padding: '0.5rem 1rem', 
+                            borderRadius: '6px', 
+                            cursor: isLoading ? 'not-allowed' : 'pointer', 
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            opacity: isLoading ? 0.6 : 1,
+                            transition: 'opacity 0.2s'
+                        }}
+                    >
+                        New Chat
+                    </button>
+                </div>
             )}
         </div>
     );

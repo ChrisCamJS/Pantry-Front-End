@@ -144,24 +144,41 @@ const RecipeDetails = () => {
               </h3>
               <ul className="space-y-3">
                 {recipe.ingredients && recipe.ingredients.length > 0 ? (
-                  recipe.ingredients.map((ing, index) => (
-                    <li key={index} className="flex items-start text-gray-700">
-                      {/* If it's a generated recipe, quantity might be 1 and unit 'serving' 
-                          as a placeholder, so we can just show the name. */}
-                      <span className="font-bold w-24 flex-shrink-0 text-purple-700">
-                        {ing.quantity !== 1 ? ing.quantity : ''} {ing.unit !== 'serving' ? ing.unit : ''}
-                      </span>
-                      <span>
-                        <span className="font-semibold">{ing.ingredient_name}</span>
-                      </span>
-                    </li>
-                  ))
+                  recipe.ingredients.map((ing, index) => {
+                    // --- THE DYNAMIC RENDER LOGIC ---
+                    // If quantity is 0 or 1 (our AI placeholders), we hide it 
+                    // and just show the full text in ingredient_name.
+                    const hasRealQuantity = Number(ing.quantity) !== 0 && Number(ing.quantity) !== 1;
+                    const hasRealUnit = ing.unit && ing.unit !== 'serving' && ing.unit !== '';
+
+                    return (
+                      <li key={index} className="flex items-start text-gray-700 py-1 border-b border-gray-50 last:border-0">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold mr-3 mt-0.5">
+                          ✓
+                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {hasRealQuantity && (
+                            <span className="font-bold text-purple-700">
+                              {Number(ing.quantity)}
+                            </span>
+                          )}
+                          {hasRealUnit && (
+                            <span className="font-bold text-purple-700">
+                              {ing.unit}
+                            </span>
+                          )}
+                          <span className="font-medium text-gray-800">
+                            {ing.ingredient_name}
+                          </span>
+                        </div>
+                      </li>
+                    );
+                  })
                 ) : (
                   <li className="text-gray-500 italic">No Ingredients Found.</li>
                 )}
               </ul>
             </section>
-
             {/* Instructions */}
             <section>
               <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-purple-100 pb-2 mb-4">

@@ -15,7 +15,7 @@ export const sendChatMessage = async (chatHistory, systemInstructionText) => {
           parts: [{ text: systemInstructionText }]
         },
         contents: chatHistory, // This is our array of { role: 'user'/'model', parts: [{ text: '...' }] }
-        generationConfig: { temperature: 0.7, maxOutputTokens: 9000 },
+        generationConfig: { temperature: 0.7, maxOutputTokens: 5000 },
       }),
     });
 
@@ -41,7 +41,7 @@ export const generateRecipeImage = async (dishName) => {
   const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
   
   // Using the unified generateContent endpoint with the new image model
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${API_KEY}`;
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${API_KEY}`;
 
   const imagePrompt = `A professional, mouth-watering, high-resolution food photography shot of a vegan, whole-food plant-based dish: ${dishName}. Served on a rustic butcher block counter. Beautiful, natural window lighting.`;
 

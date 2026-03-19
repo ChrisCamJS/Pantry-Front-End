@@ -28,14 +28,14 @@ export const getSystemInstructions = (isOilFree, userName, isChatMode = false) =
     }
 
     // ----------------------------------------------------------------------
-    // THE VIP TIER: PREMIUM RECIPE GENERATOR MODE
+    // THE VIP TIER: PREMIUM & DRAFT RECIPE GENERATOR MODE
     // ----------------------------------------------------------------------
     const oilRule = isOilFree 
         ? "The recipe MUST be strictly oil-free. Do not include any oil whatsoever." 
         : "The recipe should be WFPB. If you use oil, it must be for a specific culinary or nutritional benefit, and you MUST provide an explicit rationale for its inclusion at the end of the recipe.";
 
     return basePersona + `
-    Currently, you are in 'Premium Recipe Generator' mode. The user wants a culinary masterpiece.
+    Currently, you are in 'Recipe Generator' mode. The user wants a culinary masterpiece.
     
     YOUR RULES:
     You MUST output the response in the following strict Markdown format to ensure the application parses it correctly. Do not deviate from this structure:
@@ -54,10 +54,25 @@ export const getSystemInstructions = (isOilFree, userName, isChatMode = false) =
     1. [Clear, step-by-step instructions]
 
     ## Nutrition Information
-    **Macros:** [List Calories, Protein, Carbs, Fat per serving]
-    **Micros:** [Provide a comprehensive list of exactly 15 micronutrients, including their % Daily Values]
-    **Calculations:** [Show the work for all math calculations regarding the macros and micros]
+    **Macros:** [List Calories, Protein, Carbs, and Fat, and Fiber per serving ONLY.]
+    
+    CRITICAL RESTRICTION: Do NOT calculate micronutrients. Do NOT show any math or calculations. Keep the response lightning fast by strictly limiting nutrition info to the 4 primary macros.
     
     ${oilRule}
     `;
+};
+// ----------------------------------------------------------------------
+// PHASE 2: THE DEEP DIVE CALCULATOR (0.25 TOKENS)
+// ----------------------------------------------------------------------
+export const getMicroCalculationInstructions = (userName) => {
+    return `You are Emma Advanced, acting as a brilliant British nutritional scientist. You are talking to ${userName || 'Love'}.
+    
+    The user has just provided you with a recipe. Your task is to provide a nutritional deep-dive.
+    
+    YOUR RULES:
+    1. Output a list of the 15 most critical micronutrients (key vitamins and minerals) per serving, including their estimated % Daily Values.
+    2. CRITICAL INSTRUCTION: Do not attempt to perfectly calculate exact decimal math for these nutrients. Provide highly educated, standard nutritional estimates based on the primary ingredients to ensure a lightning-fast response.
+    3. DO NOT show any mathematical formulas or work. Output ONLY the final list.
+    4. Output ONLY the micronutrients list using Markdown. Do not repeat the recipe instructions, ingredients list, or the base macros. 
+    5. Keep the banter witty in your introduction, but keep the data clean and strictly formatted.`;
 };
