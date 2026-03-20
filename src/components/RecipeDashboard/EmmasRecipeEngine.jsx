@@ -12,7 +12,15 @@ const EmmasRecipeEngine = () => {
     const { user, spendToken } = useAuth();
     const currentUserName = user?.username || 'Guest';
 
-    const [chatHistory, setChatHistory] = useState([]);
+
+    const [chatHistory, setChatHistory] = useState([
+    {
+        role: 'model',
+        parts: [{ 
+            text: "Right then, let’s get one thing straight: I am not just a glorified recipe dispenser; I am your new culinary confidante. Welcome to the Engine Room! \n\nWe are currently in **Nutrition Natter** mode, which means you can interrogate me about plant-based proteins or the sheer, unbridled majesty of the humble chickpea absolutely free of charge. I can also draft you standard text recipes all day long without charging a penny.\n\nHowever, if you fancy something truly spectacular, switch over to **Masterpiece** mode. That will cost you a shiny token, but it forces me to do all the tedious macro-math and paint you a rather gorgeous picture of the dish. The brilliant news? Management has slipped a complimentary token into your pocket to get you started. \n\nSo, what’s it going to be? Shall we draft a spectacular spicy stew, or do you just want to argue with me about tofu?" 
+        }]
+    }
+]);
     const [recipeImage, setRecipeImage] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -21,7 +29,7 @@ const EmmasRecipeEngine = () => {
     const [currentIsOilFree, setCurrentIsOilFree] = useState(true);
 
     // 3-way state -> 'full', 'draft', or 'chat'
-    const [engineMode, setEngineMode] = useState('full');
+    const [engineMode, setEngineMode] = useState('chat');
 
     // Bottom Bin Button State
     const [showBottomBin, setShowBottomBin] = useState(false);
@@ -147,27 +155,27 @@ const EmmasRecipeEngine = () => {
         setError(null);
     };
 
-    return (
+return (
         <div className="recipe-dashboard-container">
             <header className="dashboard-header">
-                <h2>Emma's Premium Engine</h2>
-                <p>Strictly WFPB. Full Macros. Live Banter Enabled.</p>
+                <h2>Emma's Culinary & Chat Engine</h2>
+                <p>Always Plant-Based. AI Enhanced. Proper Advice.</p>
             </header>
 
             {chatHistory.length === 0 && (
                 <>
-                    <div className="mode-selector-container" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-                        <label style={getModeButtonStyle('full')}>
-                            <input type="radio" name="engineMode" value="full" checked={engineMode === 'full'} onChange={(e) => setEngineMode(e.target.value)} style={{ display: 'none' }} />
-                            📸 Full Recipe (1 Token)
+                    <div className="mode-selector-container">
+                        <label className={`mode-label ${engineMode === 'full' ? 'active' : ''}`}>
+                            <input type="radio" name="engineMode" value="full" checked={engineMode === 'full'} onChange={(e) => setEngineMode(e.target.value)} />
+                            📸 Create Masterpiece (1 Token)
                         </label>
-                        <label style={getModeButtonStyle('draft')}>
-                            <input type="radio" name="engineMode" value="draft" checked={engineMode === 'draft'} onChange={(e) => setEngineMode(e.target.value)} style={{ display: 'none' }} />
-                            📝 Text Draft (Free)
+                        <label className={`mode-label ${engineMode === 'draft' ? 'active' : ''}`}>
+                            <input type="radio" name="engineMode" value="draft" checked={engineMode === 'draft'} onChange={(e) => setEngineMode(e.target.value)} />
+                            📝 Create Recipe (Free)
                         </label>
-                        <label style={getModeButtonStyle('chat')}>
-                            <input type="radio" name="engineMode" value="chat" checked={engineMode === 'chat'} onChange={(e) => setEngineMode(e.target.value)} style={{ display: 'none' }} />
-                            💬 Nutrition Natter (Free)
+                        <label className={`mode-label ${engineMode === 'chat' ? 'active' : ''}`}>
+                            <input type="radio" name="engineMode" value="chat" checked={engineMode === 'chat'} onChange={(e) => setEngineMode(e.target.value)} />
+                            💬 Chat /w Emma (Free)
                         </label>
                     </div>
 
@@ -186,36 +194,24 @@ const EmmasRecipeEngine = () => {
                 </div>
             )}
 
+            {/* Top 'New Chat' Button */}
             {chatHistory.length > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                <div className="action-row top-action">
                     <button 
                         onClick={handleResetEngine}
                         disabled={isLoading}
-                        style={{ 
-                            background: '#fed7d7', 
-                            color: '#c53030', 
-                            border: '1px solid #fc8181', 
-                            padding: '0.5rem 1rem', 
-                            borderRadius: '6px', 
-                            cursor: isLoading ? 'not-allowed' : 'pointer', 
-                            fontWeight: 'bold',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            opacity: isLoading ? 0.6 : 1,
-                            transition: 'opacity 0.2s'
-                        }}
+                        className="new-chat-btn"
                     >
                         New Chat
                     </button>
                 </div>
             )}
 
-            <div className="chat-container" style={{ marginTop: '1rem' }}>
+            <div className="chat-container">
                 {chatHistory.map((msg, index) => {
                     if (msg.role === 'user') {
                         return (
-                            <div key={index} style={{ textAlign: 'right', margin: '1rem 0', color: '#4a5568', fontStyle: 'italic' }}>
+                            <div key={index} className="user-message">
                                 <strong>{currentUserName}:</strong> {msg.parts[0].text}
                             </div>
                         )
@@ -226,53 +222,43 @@ const EmmasRecipeEngine = () => {
                                 recipeMarkdown={msg.parts[0].text} 
                                 imageUrl={index === 1 ? recipeImage : null} 
                                 isDraft={engineMode === 'draft'} 
+                                isChat={engineMode === 'chat'}
                             />
                         )
                     }
                 })}
             </div>
 
+            {/* Follow-up Chat Input */}
             {chatHistory.length > 0 && (
-                <form onSubmit={handleFollowUpSubmit} style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
+                <form onSubmit={handleFollowUpSubmit} className="follow-up-form">
                     <input 
                         type="text" 
                         value={followUpText}
                         onChange={(e) => setFollowUpText(e.target.value)}
-                        placeholder={(isBroke && engineMode === 'full') ? "Out of tokens!" : "Talk back to Emma..."}
+                        placeholder={(isBroke && engineMode === 'full') 
+                            ? "Out of tokens, love!" 
+                            : "E.g., Let's natter about plant protein, or draft a spicy stew..."}
                         disabled={isLoading || (isBroke && engineMode === 'full')}
-                        style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e0', backgroundColor: (isBroke && engineMode === 'full') ? '#edf2f7' : 'white' }}
+                        className={`follow-up-input ${(isBroke && engineMode === 'full') ? 'broke-input' : ''}`}
                     />
                     <button 
                         type="submit" 
-                        className="submit-btn" 
+                        className={`submit-btn follow-up-submit ${(isBroke && engineMode === 'full') ? 'broke-btn' : ''}`}
                         disabled={isLoading || !followUpText.trim() || (isBroke && engineMode === 'full')}
-                        style={{ cursor: (isLoading || (isBroke && engineMode === 'full')) ? 'not-allowed' : 'pointer' }}
                     >
                         {isLoading ? "Thinking..." : ((isBroke && engineMode === 'full') ? "🪙 Skint" : "Send")}
                     </button>
                 </form>
             )}
             
-            {/* THE ORIGINAL 'BIN IT' BUTTON */}
+            {/* Bottom 'Bin It' / 'New Chat' Button */}
             {chatHistory.length > 0 && !isLoading && showBottomBin && (
-                <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '1rem' }}>
+                <div className="action-row bottom-action">
                     <button 
                         onClick={handleResetEngine}
                         disabled={isLoading}
-                        style={{ 
-                            background: '#fed7d7', 
-                            color: '#c53030', 
-                            border: '1px solid #fc8181', 
-                            padding: '0.5rem 1rem', 
-                            borderRadius: '6px', 
-                            cursor: isLoading ? 'not-allowed' : 'pointer', 
-                            fontWeight: 'bold',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            opacity: isLoading ? 0.6 : 1,
-                            transition: 'opacity 0.2s'
-                        }}
+                        className="new-chat-btn"
                     >
                         New Chat
                     </button>

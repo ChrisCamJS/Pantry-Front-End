@@ -7,7 +7,7 @@ const NutritionPanel = ({ macros, micros }) => {
 
     // Guard clause: if both are missing or empty, show the fallback
     if (!macros && (!micros || micros.length === 0)) {
-        return <p className="vault-error">Nutritional data is having a lie-in. Check back later.</p>;
+        return <p className="vault-error">Nutritional data is missing. Check back later.</p>;
     }
 
     // extract our top-level macros

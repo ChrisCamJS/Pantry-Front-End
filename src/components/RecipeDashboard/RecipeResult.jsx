@@ -1,62 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { sendChatMessage } from '../../services/geminiApi';
 import { getMicroCalculationInstructions } from '../../utils/promptBuilder';
+import { useEmmaVoice } from '../../hooks/useEmmaVoice';
+import './RecipeResult.css';
 
-const RecipeResult = ({ recipeMarkdown, imageUrl, isDraft }) => {
+const RecipeResult = ({ recipeMarkdown, imageUrl, isDraft, isChat }) => {
   const { user, spendToken } = useAuth();
-  const currentUserName = user?.username || 'Guest';
+  const currentUserName = user?.username || 'Love';
 
-  const [speechState, setSpeechState] = useState('idle');
   const [isSaving, setIsSaving] = useState(false);
   const [advancedMicros, setAdvancedMicros] = useState(null);
   const [isCalculatingMicros, setIsCalculatingMicros] = useState(false);
 
-  useEffect(() => {
-    window.speechSynthesis.getVoices();
-    return () => {
-      window.speechSynthesis.cancel();
-      setSpeechState('idle');
-    };
-  }, []);
-
-  const handleSpeak = () => {
-    if (!recipeMarkdown) return;
-    if (speechState === 'playing') {
-      window.speechSynthesis.pause();
-      setSpeechState('paused');
-      return;
-    }
-    if (speechState === 'paused') {
-      window.speechSynthesis.resume();
-      setSpeechState('playing');
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-    setSpeechState('playing');
-
-    const fullTextToRead = advancedMicros ? `${recipeMarkdown}\n\n${advancedMicros}` : recipeMarkdown;
-    const cleanText = fullTextToRead.replace(/[#*`_]/g, '');
-    const textChunks = cleanText.split('\n').filter(line => line.trim() !== '');
-    const liveVoices = window.speechSynthesis.getVoices();
-    
-    const britishVoice = liveVoices.find(voice => voice.lang === 'en-GB' && voice.name.includes('Female')) 
-                      || liveVoices.find(voice => voice.lang === 'en-GB') 
-                      || liveVoices[0];
-
-    textChunks.forEach((chunk, index) => {
-      const utterance = new SpeechSynthesisUtterance(chunk);
-      if (britishVoice) utterance.voice = britishVoice;
-      utterance.rate = 1.05; 
-      utterance.pitch = 1.1;
-      if (index === textChunks.length - 1) utterance.onend = () => setSpeechState('idle');
-      utterance.onerror = () => setSpeechState('idle');
-      window.speechSynthesis.speak(utterance);
-    });
-  };
+  // Initialize the voice hook
+  const { speechState, handleSpeak } = useEmmaVoice();
 
   const handleDownload = () => {
     if (!recipeMarkdown) return;
@@ -86,7 +46,7 @@ const RecipeResult = ({ recipeMarkdown, imageUrl, isDraft }) => {
     }
     const tokenResult = await spendToken(tokenCost);
     if (!tokenResult.success) {
-        alert(`Cheeky! The till wouldn't open: ${tokenResult.message}`);
+        alert(`Uh oh! The till wouldn't open: ${tokenResult.message}`);
         return;
     }
 
@@ -107,6 +67,7 @@ const RecipeResult = ({ recipeMarkdown, imageUrl, isDraft }) => {
   const handleSaveToVault = async () => {
       if (!recipeMarkdown) return;
       setIsSaving(true);
+      
       let recipeTitle = 'Untitled Emma Masterpiece';
       const titleMatch = recipeMarkdown.match(/^#\s+(.+)$/m);
       if (titleMatch && titleMatch[1]) recipeTitle = titleMatch[1].trim();
@@ -139,7 +100,7 @@ const RecipeResult = ({ recipeMarkdown, imageUrl, isDraft }) => {
         await api.saveGeneratedRecipe({
           title: recipeTitle, description, imageUrl: imageUrl || '', prepTime, cookTime, yields, ingredients, instructions, notes
         });
-        const successMsg = isDraft ? 'Smashing! Your text draft has been locked in the Veggie Vault.' : 'Brilliant! The full recipe and image have been safely vaulted.';
+        const successMsg = isDraft ? 'Smashing! Your recipe draft has been locked in the Veggie Vault.' : 'Brilliant! The full recipe and image have been safely vaulted.';
         alert(successMsg);
       } catch (error) {
         console.error('Failed to save to the vault:', error);
@@ -149,116 +110,80 @@ const RecipeResult = ({ recipeMarkdown, imageUrl, isDraft }) => {
       }
   };
 
-  let buttonText = "🗣️ Read Aloud";
-  let buttonColor = "#4a5568"; 
+  // Dynamic Button UI for Speech
+  let speakBtnText = "🗣️ Read Aloud";
+  let speakBtnClass = "speak-btn-idle"; 
   if (speechState === 'playing') {
-    buttonText = "⏸️ Pause Emma";
-    buttonColor = "#e53e3e"; 
+    speakBtnText = "⏸️ Pause Emma";
+    speakBtnClass = "speak-btn-playing"; 
   } else if (speechState === 'paused') {
-    buttonText = "▶️ Resume";
-    buttonColor = "#48bb78"; 
+    speakBtnText = "▶️ Resume";
+    speakBtnClass = "speak-btn-paused"; 
   }
 
   if (!recipeMarkdown) return null;
 
   return (
-    <div className="recipe-result-card" style={{ position: 'relative' }}>
+    <div className="recipe-result-card">
       
       {imageUrl && (
-        <div className="recipe-image-container" style={{ marginBottom: '2rem', textAlign: 'center' }}>
-            <img 
-                src={imageUrl} 
-                alt="A glorious AI-generated WFPB meal" 
-                style={{ maxWidth: '100%', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} 
-            />
+        <div className="recipe-image-container">
+            <img src={imageUrl} alt="A glorious AI-generated WFPB meal" />
         </div>
       )}
 
       {/* THE MAGIC TRICK: Sticky Floating Action Bar */}
-      <div 
-        className="result-actions-sticky" 
-        style={{ 
-          position: 'sticky', 
-          top: '1rem', // How far from the top of the viewport it sticks
-          zIndex: 100, 
-          display: 'flex', 
-          gap: '1rem', 
-          justifyContent: 'center', 
-          flexWrap: 'wrap', 
-          backgroundColor: 'rgba(255, 255, 255, 0.85)', // Semi-transparent white
-          backdropFilter: 'blur(8px)', // Gorgeous glass effect
-          padding: '1rem',
-          borderRadius: '12px',
-          boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
-          marginBottom: '2rem',
-          border: '1px solid #e2e8f0'
-        }}
-      >
-        <button 
-          onClick={handleSaveToVault}
-          disabled={isSaving}
-          className="vault-btn"
-          style={{
-            backgroundColor: isSaving ? '#a0aec0' : '#805ad5', color: 'white', padding: '0.75rem 1.5rem', border: 'none',
-            borderRadius: '8px', cursor: isSaving ? 'not-allowed' : 'pointer', fontWeight: 'bold', transition: 'background-color 0.2s', fontSize: '1rem'
-          }}
-        >
-          {isSaving ? '🔒 Vaulting...' : (isDraft ? '📝 Save Draft to Vault' : '📸 Save Full Recipe')}
-        </button>
+      <div className="result-actions-sticky">
+        {/* Only show Vault and Download if we aren't just nattering */}
+        {!isChat && (
+            <>
+                <button 
+                onClick={handleSaveToVault}
+                disabled={isSaving}
+                className={`action-btn vault-btn ${isSaving ? 'saving' : ''}`}
+                >
+                {isSaving ? '🔒 Vaulting...' : (isDraft ? '📝 Save Draft to Vault' : '📸 Save Full Recipe')}
+                </button>
+
+                <button onClick={handleDownload} className="action-btn download-btn">
+                💾 Local Copy
+                </button>
+            </>
+        )}
 
         <button 
-          onClick={handleDownload}
-          className="download-btn"
-          style={{
-            backgroundColor: '#2b6cb0', color: 'white', padding: '0.75rem 1.5rem', border: 'none',
-            borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', transition: 'background-color 0.2s', fontSize: '1rem'
-          }}
+          onClick={() => handleSpeak(advancedMicros ? `${recipeMarkdown}\n\n${advancedMicros}` : recipeMarkdown)} 
+          className={`action-btn speak-btn ${speakBtnClass}`}
         >
-          💾 Local Copy
-        </button>
-
-        <button 
-          onClick={handleSpeak} 
-          className="speak-btn"
-          style={{
-            backgroundColor: buttonColor, color: 'white', padding: '0.75rem 1.5rem', border: 'none',
-            borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', transition: 'background-color 0.2s', fontSize: '1rem'
-          }}
-        >
-          {buttonText}
+          {speakBtnText}
         </button>
       </div>
 
       <div className="recipe-content">
-        <ReactMarkdown>
-          {recipeMarkdown}
-        </ReactMarkdown>
+        <ReactMarkdown>{recipeMarkdown}</ReactMarkdown>
       </div>
 
       {advancedMicros && (
-          <div className="advanced-micros-content" style={{ marginTop: '2rem', padding: '1.5rem', backgroundColor: '#faf5ff', borderRadius: '12px', border: '1px solid #d6bcfa' }}>
-              <h3 style={{ color: '#6b46c1', marginTop: 0 }}>🔬 Emma's Deep Dive Analysis</h3>
+          <div className="advanced-micros-content">
+              <h3>🔬 Emma's Deep Dive Analysis</h3>
               <ReactMarkdown>{advancedMicros}</ReactMarkdown>
           </div>
       )}
 
-      {!advancedMicros && (
-          <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+      {/* Hide the calculation button if we are in chat mode OR if it's already calculated */}
+      {!isChat && !advancedMicros && (
+          <div className="calc-micros-container">
               <button 
                 onClick={handleCalculateMicros}
                 disabled={isCalculatingMicros}
-                style={{
-                    backgroundColor: isCalculatingMicros ? '#e2e8f0' : '#ebf4ff', color: isCalculatingMicros ? '#a0aec0' : '#3182ce',
-                    border: '1px solid #63b3ed', padding: '0.5rem 1rem', borderRadius: '20px', cursor: isCalculatingMicros ? 'not-allowed' : 'pointer',
-                    fontWeight: 'bold', transition: 'all 0.2s'
-                }}
+                className={`calc-micros-btn ${isCalculatingMicros ? 'calculating' : ''}`}
               >
                   {isCalculatingMicros ? '🧮 Crunching the numbers...' : '🔬 Calculate Full Macros and Micros (0.1 Tokens)'}
               </button>
           </div>
       )}
       
-      <div className="recipe-footer" style={{ textAlign: 'center', marginTop: '1.5rem', color: '#718096' }}>
+      <div className="recipe-footer">
         <p><em>Generated by Emma Advanced for The Chris and Emma Show Premium Vault.</em></p>
       </div>
     </div>

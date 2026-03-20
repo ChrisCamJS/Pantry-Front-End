@@ -1,8 +1,8 @@
 
 .recipe-dashboard-container {
   max-width: 800px;
-  margin: 2rem auto;
-  padding: 2rem;
+  margin: .8rem auto;
+  padding: 1.5rem;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #fcfcfc;
   border-radius: 12px;
@@ -203,4 +203,146 @@
   font-size: 0.9rem;
   border-top: 1px solid #edf2f7;
   padding-top: 1rem;
+}
+
+/* --- Mode Selector Buttons --- */
+.mode-selector-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.mode-label {
+  display: inline-block;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #4a5568;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  user-select: none;
+}
+
+/* Hide the actual radio circle */
+.mode-label input[type="radio"] {
+  display: none;
+}
+
+.mode-label:hover {
+  border-color: #cbd5e0;
+  background-color: #f7fafc;
+}
+
+/* Active State for the selected mode */
+.mode-label.active {
+  border-color: #48bb78;
+  background-color: #f0fff4;
+  color: #276749;
+  box-shadow: 0 2px 4px rgba(72, 187, 120, 0.15);
+}
+
+/* --- Chat & Messaging --- */
+.chat-container {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.user-message {
+  align-self: flex-end;
+  text-align: right;
+  background-color: #edf2f7;
+  padding: 1rem 1.25rem;
+  border-radius: 12px 12px 0 12px;
+  color: #2d3748;
+  font-style: italic;
+  max-width: 80%;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.user-message strong {
+  color: #48bb78;
+  font-style: normal;
+  margin-right: 0.25rem;
+}
+
+/* --- Action Rows & Buttons --- */
+.action-row {
+  display: flex;
+  margin-top: 1rem;
+}
+
+.action-row.top-action {
+  justify-content: flex-end;
+}
+
+.action-row.bottom-action {
+  justify-content: flex-start;
+}
+
+.new-chat-btn {
+  background: #fed7d7;
+  color: #c53030;
+  border: 1px solid #fc8181;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.new-chat-btn:hover:not(:disabled) {
+  background: #feb2b2;
+}
+
+.new-chat-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- Follow-up Form --- */
+.follow-up-form {
+  margin-top: 2rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.follow-up-input {
+  flex: 1;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  background-color: #ffffff;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.follow-up-input:focus {
+  outline: none;
+  border-color: #48bb78;
+  box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.2);
+}
+
+.follow-up-input.broke-input {
+  background-color: #edf2f7;
+  border-color: #cbd5e0;
+  color: #a0aec0;
+}
+
+.follow-up-submit {
+  padding: 0.85rem 1.5rem;
+}
+
+.follow-up-submit.broke-btn {
+  background-color: #ecc94b;
+  color: #744210;
 }

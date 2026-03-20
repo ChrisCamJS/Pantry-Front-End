@@ -25,13 +25,18 @@ body {
 
 /* --- Layout & Header --- */
 .app-container {
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 15px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
+
+
 
 .main-content {
   flex: 1; /* Pushes the footer to the bottom */
@@ -41,10 +46,21 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 0;
+  padding: 1.5rem 0;
   border-bottom: 3px solid var(--primary-green);
   margin-bottom: 40px;
+  flex-wrap: wrap;
+  gap: 1rem;
+  width: 100%;
 }
+
+@media (max-width: 768px) {
+  .main-header {
+    flex-direction: column; /* Stack the logo, nav, and user info */
+    text-align: center;
+    padding: 1rem 0;
+  }
+}  
 
 .main-header h1 a {
   color: var(--vault-dark);
@@ -57,7 +73,10 @@ body {
 .main-nav ul {
   list-style: none;
   display: flex;
-  gap: 25px;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0;
+  justify-content: center;
 }
 
 .main-nav a {
@@ -72,9 +91,6 @@ body {
 .main-nav a:hover {
   color: var(--primary-green);
 }
-
-/* --- Recipe Cards --- */
-
 
 /* --- Recipe Details Page --- */
 .recipe-details h2 {
@@ -123,4 +139,3 @@ footer {
   color: #888;
   font-size: 0.9em;
 }
-
