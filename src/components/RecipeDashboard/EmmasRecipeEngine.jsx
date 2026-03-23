@@ -16,7 +16,20 @@ const EmmasRecipeEngine = () => {
     const [chatHistory, setChatHistory] = useState([]);
     
     // state for our modal.
-    const [showWelcomeModal, setShowWelcomeModal] = useState(true);
+    const [showWelcomeModal, setShowWelcomeModal] = useState(() => {
+        return localStorage.getItem('emmaEngineWelcomeDismissed') !== 'true';
+    });
+    
+    // State for our new checkbox (defaulted to true to save them a click)
+    const [dontShowAgain, setDontShowAgain] = useState(true);
+
+    // The handler to banish the modal and save the preference
+    const handleDismissWelcome = () => {
+        if (dontShowAgain) {
+            localStorage.setItem('emmaEngineWelcomeDismissed', 'true');
+        }
+        setShowWelcomeModal(false);
+    };
 
     const [recipeImage, setRecipeImage] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -158,7 +171,7 @@ const EmmasRecipeEngine = () => {
 
 return (
         <div className="recipe-dashboard-container">
-            {/* The Welcome Modal Overlay */}
+            {/* Welcome Modal */}
             {showWelcomeModal && (
                 <div className="welcome-modal-overlay">
                     <div className="welcome-modal-content">
@@ -166,9 +179,21 @@ return (
                         <p>Right then, let’s get one thing straight: I am not just a glorified recipe dispenser; I am your new culinary confidante.</p>
                         <p><strong>Nutrition Natter & Draft modes</strong> are absolutely free of charge. </p>
                         <p>However, if you fancy something truly spectacular, switch over to <strong>Masterpiece Mode</strong>. That will cost you a shiny token, but it forces me to do all the tedious macro-math and paint you a gorgeous picture of the dish.</p>
+                        
+                        <div className="modal-preferences">
+                            <label className="checkbox-label">
+                                <input 
+                                    type="checkbox" 
+                                    checked={dontShowAgain}
+                                    onChange={(e) => setDontShowAgain(e.target.checked)}
+                                />
+                                Don't show this bloody message again
+                            </label>
+                        </div>
+
                         <button 
                             className="dismiss-modal-btn" 
-                            onClick={() => setShowWelcomeModal(false)}
+                            onClick={handleDismissWelcome}
                         >
                             Right, let's get cooking!
                         </button>
