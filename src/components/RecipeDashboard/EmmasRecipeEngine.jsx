@@ -1,8 +1,10 @@
-// src/pages/EmmasRecipeEngine.jsx
+// src/components/RecipeDashboard/EmmasRecipeEngine.jsx
 
 import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown'; // We need this to render my bold/italic banter!
 import { getSystemInstructions } from '../../utils/promptBuilder';
 import { sendChatMessage, generateRecipeImage } from '../../services/geminiApi'; 
+import { useEmmaVoice } from '../../hooks/useEmmaVoice';
 import { useAuth } from '../../context/AuthContext';
 import RecipeForm from './RecipeForm';
 import RecipeResult from './RecipeResult';
@@ -11,6 +13,9 @@ import './EmmasRecipeEngine.css';
 const EmmasRecipeEngine = () => {
     const { user, spendToken } = useAuth();
     const currentUserName = user?.username || 'Love';
+
+    // EMMA'S VOICE HOOK
+    const { speechState, handleSpeak } = useEmmaVoice();
 
     // Start with a completely empty chat history
     const [chatHistory, setChatHistory] = useState([]);
@@ -107,9 +112,27 @@ const EmmasRecipeEngine = () => {
 
             const modelReplyText = await sendChatMessage(updatedHistory, systemInstructions);
 
+            // EMMA'S SURGICAL SPLIT: Separate the wit from the WFPB data
+            let emmaCommentary = '';
+            let recipeMarkdown = modelReplyText;
+
+            // Only attempt the split if we are generating a recipe
+            if (!isChatActive) {
+                const titleMatchIndex = modelReplyText.indexOf('# ');
+                // If we found a title AND it's not the very first character...
+                if (titleMatchIndex > 0) {
+                    emmaCommentary = modelReplyText.substring(0, titleMatchIndex).trim();
+                    recipeMarkdown = modelReplyText.substring(titleMatchIndex).trim();
+                }
+            }
+
             setChatHistory([
                 ...updatedHistory,
-                { role: 'model', parts: [{ text: modelReplyText }] }
+                { 
+                    role: 'model', 
+                    parts: [{ text: modelReplyText }], // Original text for the API context
+                    displayParts: { commentary: emmaCommentary, recipe: recipeMarkdown } // Clean data for our UI
+                }
             ]);
 
         } catch (err) {
@@ -142,25 +165,6 @@ const EmmasRecipeEngine = () => {
 
     const isBroke = user?.generation_tokens <= 0;
 
-    const getModeButtonStyle = (modeName) => {
-        const isSelected = engineMode === modeName;
-        return {
-            cursor: 'pointer',
-            padding: '0.75rem 1rem',
-            borderRadius: '8px',
-            border: `2px solid ${isSelected ? '#805ad5' : '#e2e8f0'}`,
-            backgroundColor: isSelected ? '#faf5ff' : 'white',
-            color: isSelected ? '#805ad5' : '#4a5568',
-            fontWeight: isSelected ? 'bold' : 'normal',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            transition: 'all 0.2s ease-in-out',
-            flex: '1',
-            justifyContent: 'center'
-        };
-    };
-
     // A helper function so we don't repeat our binning logic
     const handleResetEngine = () => {
         setChatHistory([]);
@@ -169,7 +173,7 @@ const EmmasRecipeEngine = () => {
         setError(null);
     };
 
-return (
+    return (
         <div className="recipe-dashboard-container">
             {/* Welcome Modal */}
             {showWelcomeModal && (
@@ -260,14 +264,58 @@ return (
                             </div>
                         )
                     } else {
+                        // Safely extract our split strings, falling back to full text if it's an old chat or Natter mode
+                        const commentary = msg.displayParts?.commentary;
+                        const recipeText = msg.displayParts?.recipe || msg.parts[0].text;
+
                         return (
-                            <RecipeResult 
-                                key={index} 
-                                recipeMarkdown={msg.parts[0].text} 
-                                imageUrl={index === 1 ? recipeImage : null} 
-                                isDraft={engineMode === 'draft'} 
-                                isChat={engineMode === 'chat'}
-                            />
+                            <React.Fragment key={index}>
+                                {/* Render Emma's sassy chat bubble if she has something to say */}
+                                {commentary && (
+                                    <div className="emma-banter-bubble" style={{ 
+                                        backgroundColor: '#faf5ff', 
+                                        padding: '1.2rem', 
+                                        borderRadius: '12px', 
+                                        marginBottom: '1rem', 
+                                        color: '#4a5568', 
+                                        borderLeft: '4px solid #805ad5',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                    }}>
+                                        {/* EMMA'S NEW HEADER ROW WITH THE BUTTON */}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <strong>Emma:</strong> 
+                                            <button
+                                                onClick={() => handleSpeak(commentary)}
+                                                style={{
+                                                    background: 'transparent',
+                                                    border: 'none',
+                                                    cursor: 'pointer',
+                                                    fontSize: '1.2rem',
+                                                    opacity: '0.5',
+                                                    padding: '0',
+                                                    transition: 'opacity 0.2s ease'
+                                                }}
+                                                title="Listen to Emma"
+                                                onMouseEnter={(e) => e.target.style.opacity = '1'}
+                                                onMouseLeave={(e) => e.target.style.opacity = '0.5'}
+                                            >
+                                                {speechState === 'playing' ? '⏸️' : '🔊'}
+                                            </button>
+                                        </div>
+                                        
+                                        <div style={{ marginTop: '0.5rem', lineHeight: '1.5' }}>
+                                            <ReactMarkdown>{commentary}</ReactMarkdown>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                <RecipeResult 
+                                    recipeMarkdown={recipeText} 
+                                    imageUrl={index === 1 ? recipeImage : null} 
+                                    isDraft={engineMode === 'draft'} 
+                                    isChat={engineMode === 'chat'}
+                                />
+                            </React.Fragment>
                         )
                     }
                 })}

@@ -72,7 +72,7 @@ const RecipeResult = ({ recipeMarkdown, imageUrl, isDraft, isChat }) => {
       const titleMatch = recipeMarkdown.match(/^#\s+(.+)$/m);
       if (titleMatch && titleMatch[1]) recipeTitle = titleMatch[1].trim();
 
-      const descMatch = recipeMarkdown.match(/^#\s+.+\n+([^#\n]+)/m);
+      const descMatch = recipeMarkdown.match(/^#\s+[^\n]+\n+([\s\S]*?)(?=\n\*\*|\n##)/);
       const description = descMatch ? descMatch[1].trim() : 'A glorious AI-generated WFPB meal.';
 
       let prepTime = 0; let cookTime = 0; let yields = '';
@@ -83,10 +83,10 @@ const RecipeResult = ({ recipeMarkdown, imageUrl, isDraft, isChat }) => {
       const yieldMatch = recipeMarkdown.match(/yields?:?\s*(.+?)(?:\n|$)/i);
       if (yieldMatch) yields = yieldMatch[1].trim();
 
-      const ingredientsMatch = recipeMarkdown.match(/##\s*Ingredients([\s\S]*?)(?=##|$)/i);
+      const ingredientsMatch = recipeMarkdown.match(/##\s*Ingredients([\s\S]*?)(?=\n##\s*(?:Instructions|Nutrition Information|Chef's Notes)|$)/i);
       const ingredients = ingredientsMatch ? ingredientsMatch[1].split('\n').filter(line => line.trim().match(/^[-*]/)).map(line => line.replace(/^[-*]\s*/, '').trim()) : [];
 
-      const instructionsMatch = recipeMarkdown.match(/##\s*Instructions([\s\S]*?)(?=##|$)/i);
+      const instructionsMatch = recipeMarkdown.match(/##\s*Instructions([\s\S]*?)(?=\n##\s*(?:Nutrition Information|Chef's Notes)|$)/i);
       const instructions = instructionsMatch ? instructionsMatch[1].split('\n').filter(line => line.trim().match(/^\d+\./)).map(line => line.replace(/^\d+\.\s*/, '').trim()) : [];
 
       const notesMatch = recipeMarkdown.match(/##\s*Chef's?\s*Notes([\s\S]*?)(?=##|$)/i);
@@ -96,9 +96,38 @@ const RecipeResult = ({ recipeMarkdown, imageUrl, isDraft, isChat }) => {
           notes = notes ? `${notes}\n\n### Advanced Nutritional Analysis\n${advancedMicros}` : `### Advanced Nutritional Analysis\n${advancedMicros}`;
       }
 
+      let calories = 0, protein_g = 0, carbs_g = 0, fat_g = 0, fiber_g = 0;
+      const calMatch = recipeMarkdown.match(/Calories:\s*(\d+)/i);
+      if (calMatch) calories = parseInt(calMatch[1], 10);
+      
+      const proMatch = recipeMarkdown.match(/Protein:\s*(\d+)/i);
+      if (proMatch) protein_g = parseInt(proMatch[1], 10);
+      
+      const carbMatch = recipeMarkdown.match(/Carbs:\s*(\d+)/i);
+      if (carbMatch) carbs_g = parseInt(carbMatch[1], 10);
+      
+      const fatMatch = recipeMarkdown.match(/Fat:\s*(\d+)/i);
+      if (fatMatch) fat_g = parseInt(fatMatch[1], 10);
+
+      const fiberMatch = recipeMarkdown.match(/Fiber:\s*(\d+)/i);
+      if (fiberMatch) fiber_g = parseInt(fiberMatch[1], 10);
+
       try {
-        await api.saveGeneratedRecipe({
-          title: recipeTitle, description, imageUrl: imageUrl || '', prepTime, cookTime, yields, ingredients, instructions, notes
+          await api.saveGeneratedRecipe({
+          title: recipeTitle, 
+          description, 
+          imageUrl: imageUrl || '', 
+          prepTime, 
+          cookTime, 
+          yields, 
+          ingredients, 
+          instructions, 
+          notes,
+          calories,
+          protein_g,
+          carbs_g,
+          fat_g,
+          fiber_g
         });
         const successMsg = isDraft ? 'Smashing! Your recipe draft has been locked in the Veggie Vault.' : 'Brilliant! The full recipe and image have been safely vaulted.';
         alert(successMsg);

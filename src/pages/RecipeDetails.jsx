@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
+import ReactMarkdown from 'react-markdown';
 import NutritionPanel from '../components/NutritionPanel';
 import './RecipeDetails.css'; 
 
@@ -25,7 +26,6 @@ const RecipeDetails = () => {
         setLoading(true);
         const data = await api.getRecipesById(id);
         
-        // Safety net in case the API wraps the single recipe in an error object
         if (data.error) throw new Error(data.error);
         
         setRecipe(data);
@@ -67,7 +67,6 @@ const RecipeDetails = () => {
     );
   }
 
-  // Handle the image string parsing
   const targetImage = recipe?.imageUrl || recipe?.image_url; 
   const fullImageUrl = targetImage 
     ? (targetImage.startsWith('http') ? targetImage : `${API_URL}${targetImage}`)
@@ -77,14 +76,12 @@ const RecipeDetails = () => {
   return (
     <div className="recipe-page-container">
       
-      {/* Back Button */}
       <div className="recipe-back-wrapper">
         <Link to="/" className="recipe-back-button">
           &larr; Back to Recipe Grid
         </Link>
       </div>
 
-      {/* Hero Image */}
       <div className="recipe-image-wrapper">
         <img 
           src={fullImageUrl} 
@@ -93,11 +90,9 @@ const RecipeDetails = () => {
         />
       </div>
 
-      {/* Main Recipe Card */}
       <div className="recipe-card">
         <header className="recipe-header">
           
-          {/* Oil-Free Badge at the very top! */}
           {Boolean(Number(recipe.is_oil_free)) && (
             <span className="recipe-badge-oil-free">
               🌿 100% Oil-Free
@@ -108,13 +103,13 @@ const RecipeDetails = () => {
             {recipe.title}
           </h1>
           
+          {/* EMMA'S FIX 1: Wrap description in ReactMarkdown so the bolding/lists look pretty! */}
           {recipe.description && (
-            <p className="recipe-description">
-              {recipe.description}
-            </p>
+            <div className="recipe-hero-description">
+                <ReactMarkdown>{recipe.description}</ReactMarkdown>
+            </div>
           )}
 
-          {/* Recipe Meta Info (Time & Yields) */}
           <div className="recipe-meta-tags">
             <span className="recipe-meta-tag">
               ⏱ Prep: {recipe.prep_time_mins || 0}m
@@ -128,7 +123,6 @@ const RecipeDetails = () => {
           </div>
         </header>
 
-        {/* CHEF'S NOTES & OIL RATIONALE */}
         {recipe.oil_rationale && (
           <div className="recipe-rationale-box">
             <h4 className="recipe-rationale-title">
@@ -140,20 +134,16 @@ const RecipeDetails = () => {
           </div>
         )}
 
-        {/* Two-Column Grid for Content */}
         <div className="recipe-content-grid">
           
-          {/* Left Column: Ingredients & Instructions */}
+          {/* LEFT COLUMN */}
           <div className="recipe-main-col">
             
-            {/* Ingredients Section */}
             <section className="recipe-section">
               <h3 className="recipe-section-title">Ingredients</h3>
               <ul className="recipe-ingredients-list">
                 {recipe.ingredients && recipe.ingredients.length > 0 ? (
                   recipe.ingredients.map((ing, index) => {
-                    // --- THE DYNAMIC RENDER LOGIC ---
-                    // Hide 0 or 1 placeholders.
                     const hasRealQuantity = Number(ing.quantity) !== 0 && Number(ing.quantity) !== 1;
                     const hasRealUnit = ing.unit && ing.unit !== 'serving' && ing.unit !== '';
 
@@ -184,7 +174,6 @@ const RecipeDetails = () => {
               </ul>
             </section>
 
-            {/* Instructions Section */}
             <section className="recipe-section">
               <h3 className="recipe-section-title">Instructions</h3>
               <ol className="recipe-instructions-list">
@@ -194,9 +183,10 @@ const RecipeDetails = () => {
                       <span className="recipe-instruction-number">
                         {step.step_number}
                       </span>
-                      <span className="recipe-instruction-text">
-                        {step.instruction_text}
-                      </span>
+                      {/* EMMA'S FIX 2: Wrapped the instruction text in ReactMarkdown to process the bold text! */}
+                      <div className="recipe-instruction-text" style={{margin: 0, padding: 0}}>
+                        <ReactMarkdown>{step.instruction_text}</ReactMarkdown>
+                      </div>
                     </li>
                   ))
                 ) : (
@@ -206,9 +196,17 @@ const RecipeDetails = () => {
                 )}
               </ol>
             </section>
+            
+            {/* EMMA'S FIX 3: Moved the Deep Dive inside the Left Column so it doesn't break your CSS Grid! */}
+            {recipe.notes && (
+                <div className="recipe-deep-dive-container" style={{ marginTop: '2rem', padding: '1.5rem', backgroundColor: '#faf5ff', borderRadius: '12px', borderLeft: '4px solid #805ad5' }}>
+                    <ReactMarkdown>{recipe.notes}</ReactMarkdown>
+                </div>
+            )}
+            
           </div>
 
-          {/* Right Column: Nutrition Panel */}
+          {/* RIGHT COLUMN */}
           <div className="recipe-sidebar-col">
             <div className="recipe-sticky-sidebar">
               <NutritionPanel macros={recipe.macros} micros={recipe.micros} />

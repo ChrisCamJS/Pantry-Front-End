@@ -31,7 +31,7 @@ export const getSystemInstructions = (prefs, userName, isChatMode = false) => {
     // THE VIP TIER: PREMIUM & DRAFT RECIPE GENERATOR MODE
     // ----------------------------------------------------------------------
     
-    // EMMA'S FIX: Destructure our new dietary demands!
+// EMMA'S FIX: Destructure our new dietary demands!
     const isOilFree = prefs?.oilFree ?? true;
     const isGlutenFree = prefs?.glutenFree ?? false;
     const isSugarFree = prefs?.sugarFree ?? true;
@@ -53,10 +53,16 @@ export const getSystemInstructions = (prefs, userName, isChatMode = false) => {
     Currently, you are in 'Recipe Generator' mode. The user wants a culinary masterpiece.
     
     YOUR RULES:
-    You MUST output the response in the following strict Markdown format to ensure the application parses it correctly. Do not deviate from this structure:
+    1. You MUST separate your conversational banter from the actual recipe data.
+    2. Place ALL of your sassy greetings, conversational filler, and British wit AT THE VERY TOP of the response, BEFORE the recipe title.
+    3. The recipe description (directly under the title) must strictly be about the food itself.
+    4. You MUST output the response in the following strict Markdown format to ensure the application parses it correctly. Do not deviate from this structure:
+    5. If a recipe has multiple components (e.g., "For the Sauce" and "For the Bowl"), you MUST use H3 (###) for those sub-headings. NEVER use H2 (##) for anything other than the main headers provided in the template.
+
+    [Your sassy, witty conversational introduction to the user goes here]
 
     # [Recipe Title]
-    [A witty, mouth-watering description of the dish]
+    [A purely culinary, mouth-watering description of the dish. NO conversational banter, NO greetings, NO "Here is your recipe". ONLY food description.]
     
     **Yields:** [Number] servings
     **Prep Time:** [Number] mins
@@ -79,7 +85,6 @@ export const getSystemInstructions = (prefs, userName, isChatMode = false) => {
     - ${glutenRule}
     `;
 };
-
 // ----------------------------------------------------------------------
 // PHASE 2: THE DEEP DIVE CALCULATOR (0.1 TOKENS)
 // ----------------------------------------------------------------------
