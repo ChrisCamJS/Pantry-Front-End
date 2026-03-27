@@ -1,3 +1,4 @@
+// src/components/RecipeDashboard/RecipeResult.jsx
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { api } from '../../services/api';
@@ -5,27 +6,23 @@ import { useAuth } from '../../context/AuthContext';
 import { sendChatMessage } from '../../services/geminiApi';
 import { getMicroCalculationInstructions } from '../../utils/promptBuilder';
 import { useEmmaVoice } from '../../hooks/useEmmaVoice';
+import LiveChat from '../LiveChat'; // Bringing in Live Mode
 import './RecipeResult.css';
 
 const RecipeResult = ({ recipeMarkdown, imageUrl, isDraft, isChat }) => {
-  const { user } = useAuth(); // Notice: spendToken is gone! The micros are on the house.
+  const { user } = useAuth(); 
   const currentUserName = user?.username || 'Love';
 
   const [isSaving, setIsSaving] = useState(false);
   const [advancedMicros, setAdvancedMicros] = useState(null);
   const [isCalculatingMicros, setIsCalculatingMicros] = useState(false);
   
-  // New state for our toggle button!
   const [showDeepDive, setShowDeepDive] = useState(false);
+  const [showLiveChat, setShowLiveChat] = useState(false); // Live chat state
 
-  // Initialize the voice hook
   const { speechState, handleSpeak } = useEmmaVoice();
 
-  // ==========================================================================
-  // EMMA'S STEALTH CALCULATION (The Background Magic)
-  // ==========================================================================
   useEffect(() => {
-    // Only run if it's a masterpiece (not a chat, not a draft), we have a recipe, and we haven't calculated yet!
     if (recipeMarkdown && !isChat && !isDraft && !advancedMicros && !isCalculatingMicros) {
         const fetchBackgroundMicros = async () => {
             setIsCalculatingMicros(true);
@@ -33,7 +30,6 @@ const RecipeResult = ({ recipeMarkdown, imageUrl, isDraft, isChat }) => {
                 const instructions = getMicroCalculationInstructions(currentUserName);
                 const chatHistory = [{ role: 'user', parts: [{ text: `Here is the recipe I need you to deeply analyze:\n\n${recipeMarkdown}` }] }];
                 
-                // Silent API call in the background!
                 const mathResult = await sendChatMessage(chatHistory, instructions);
                 setAdvancedMicros(mathResult);
             } catch (err) {
@@ -116,7 +112,6 @@ const RecipeResult = ({ recipeMarkdown, imageUrl, isDraft, isChat }) => {
       const fiberMatch = recipeMarkdown.match(/Fiber:\s*(\d+)/i);
       if (fiberMatch) fiber_g = parseInt(fiberMatch[1], 10);
 
-      // --- EMMA'S MICRO EXTRACTOR ---
       const parsedMicros = [];
       if (advancedMicros) {
           const microRegex = /\*\s+\*?\*?([a-zA-Z\s\-]+)\*?\*?:\s*([\d.]+)\s*([a-zA-Z]+)[^\d]+([\d.]+)%/g;
@@ -159,7 +154,6 @@ const RecipeResult = ({ recipeMarkdown, imageUrl, isDraft, isChat }) => {
       }
   };
 
-  // Dynamic Button UI for Speech
   let speakBtnText = "🗣️ Read Aloud";
   let speakBtnClass = "speak-btn-idle"; 
   if (speechState === 'playing') {
@@ -181,8 +175,36 @@ const RecipeResult = ({ recipeMarkdown, imageUrl, isDraft, isChat }) => {
         </div>
       )}
 
-      {/* THE MAGIC TRICK: Sticky Floating Action Bar */}
-      <div className="result-actions-sticky">
+      {/* Live Chat Toggle Button */}
+      {!isChat && (
+          <button 
+              onClick={() => setShowLiveChat(!showLiveChat)}
+              style={{ 
+                  float: 'right', 
+                  background: showLiveChat ? '#fed7d7' : '#e6fffa', 
+                  color: showLiveChat ? '#c53030' : '#319795', 
+                  border: `2px solid ${showLiveChat ? '#feb2b2' : '#81e6d9'}`, 
+                  padding: '8px 16px', 
+                  borderRadius: '8px', 
+                  cursor: 'pointer', 
+                  fontWeight: 'bold',
+                  marginBottom: '1rem',
+                  transition: 'all 0.2s'
+              }}
+          >
+              {showLiveChat ? '🛑 Close Live Chat' : '🎙️ Ask Emma Live'}
+          </button>
+      )}
+
+      {/* The Inline Live Chat Box */}
+      {showLiveChat && !isChat && (
+          <div style={{ marginBottom: '2rem', clear: 'both', width: '100%' }}>
+              <LiveChat recipeContext={`The user is currently cooking or reviewing this recipe: \n\n${recipeMarkdown.substring(0, 1000)}`} />
+          </div>
+      )}
+
+      {/* YOUR ORIGINAL ACTION ROW RESTORED */}
+      <div className="action-row result-actions" style={{ clear: 'both' }}>
         {!isChat && (
             <>
                 <button 
@@ -190,7 +212,6 @@ const RecipeResult = ({ recipeMarkdown, imageUrl, isDraft, isChat }) => {
                 disabled={isSaving || isCalculatingMicros}
                 className={`action-btn vault-btn ${(isSaving || isCalculatingMicros) ? 'saving' : ''}`}
                 >
-                {/* THE VAULT GUARD: Locks the button until the background math is done! */}
                 {isCalculatingMicros ? '⏳ Finalizing Nutrition...' : (isSaving ? '🔒 Vaulting...' : (isDraft ? '📝 Save Draft to Vault' : '📸 Save Full Recipe'))}
                 </button>
 
@@ -212,7 +233,6 @@ const RecipeResult = ({ recipeMarkdown, imageUrl, isDraft, isChat }) => {
         <ReactMarkdown>{recipeMarkdown}</ReactMarkdown>
       </div>
 
-      {/* THE NEW DEEP DIVE REVEAL TOGGLE */}
       {!isChat && !isDraft && (
           <div className="calc-micros-container">
               <button 
@@ -225,7 +245,6 @@ const RecipeResult = ({ recipeMarkdown, imageUrl, isDraft, isChat }) => {
           </div>
       )}
 
-      {/* RENDER THE DEEP DIVE IF TOGGLED ON */}
       {showDeepDive && advancedMicros && (
           <div className="advanced-micros-content">
               <h3>🔬 Emma's Deep Dive Analysis</h3>

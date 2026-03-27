@@ -4,6 +4,7 @@ import { api } from '../services/api';
 import { sendChatMessage } from '../services/geminiApi';
 import { useEmmaVoice } from '../hooks/useEmmaVoice';
 import { useAuth } from '../context/AuthContext';
+import LiveChat from '../components/LiveChat';
 import ReactMarkdown from 'react-markdown';
 import NutritionPanel from '../components/NutritionPanel';
 import './RecipeDetails.css'; 
@@ -30,6 +31,7 @@ const RecipeDetails = () => {
   const [chatMessage, setChatMessage] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
   const [isChatting, setIsChatting] = useState(false);
+  const [showLiveChat, setShowLiveChat] = useState(false);
 
   // --- DATA FETCHING (useEffect) ---
   useEffect(() => {
@@ -235,7 +237,34 @@ const RecipeDetails = () => {
             </div>
         )}
 
-        {/* --- BRAND NEW: ASK EMMA CHATBOX --- */}
+        {/* --- LIVE AUDIO CHAT TOGGLE --- */}
+        <div style={{ margin: '0 1.5rem 1rem 1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+            <button 
+                onClick={() => setShowLiveChat(!showLiveChat)}
+                style={{ 
+                    background: showLiveChat ? '#fed7d7' : '#e6fffa', 
+                    color: showLiveChat ? '#c53030' : '#319795', 
+                    border: `2px solid ${showLiveChat ? '#feb2b2' : '#81e6d9'}`, 
+                    padding: '8px 16px', 
+                    borderRadius: '8px', 
+                    cursor: 'pointer', 
+                    fontWeight: 'bold',
+                    transition: 'all 0.2s'
+                }}
+            >
+                {showLiveChat ? '🛑 Close Live Chat' : '🎙️ Ask Emma Live'}
+            </button>
+        </div>
+
+        {/* --- THE LIVE CHAT COMPONENT --- */}
+        {showLiveChat && (
+            <div style={{ margin: '0 1.5rem 2rem 1.5rem' }}>
+                <LiveChat 
+                    recipeContext={`The user is currently viewing the recipe: "${recipe.title}". Ingredients: ${recipe.ingredients?.map(i => i.ingredient_name).join(', ')}`} 
+                />
+            </div>
+        )}
+        {/* --- ASK EMMA CHATBOX --- */}
         <div className="recipe-chat-container" style={{ margin: '0 1.5rem 2rem 1.5rem', padding: '1.5rem', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
             <h3 style={{ borderBottom: '2px solid #f3f4f6', paddingBottom: '0.75rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#1f2937' }}>
                 💬 Ask Emma About This Dish

@@ -1,34 +1,30 @@
 // src/components/RecipeDashboard/EmmasRecipeEngine.jsx
 
 import React, { useState, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown'; // We need this to render my bold/italic banter!
+import ReactMarkdown from 'react-markdown'; 
 import { getSystemInstructions } from '../../utils/promptBuilder';
 import { sendChatMessage, generateRecipeImage } from '../../services/geminiApi'; 
 import { useEmmaVoice } from '../../hooks/useEmmaVoice';
 import { useAuth } from '../../context/AuthContext';
 import RecipeForm from './RecipeForm';
 import RecipeResult from './RecipeResult';
+import LiveChat from '../LiveChat'; 
 import './EmmasRecipeEngine.css';
 
 const EmmasRecipeEngine = () => {
     const { user, spendToken } = useAuth();
     const currentUserName = user?.username || 'Love';
 
-    // EMMA'S VOICE HOOK
     const { speechState, handleSpeak } = useEmmaVoice();
 
-    // Start with a completely empty chat history
     const [chatHistory, setChatHistory] = useState([]);
     
-    // state for our modal.
     const [showWelcomeModal, setShowWelcomeModal] = useState(() => {
         return localStorage.getItem('emmaEngineWelcomeDismissed') !== 'true';
     });
     
-    // State for our new checkbox (defaulted to true to save them a click)
     const [dontShowAgain, setDontShowAgain] = useState(true);
 
-    // The handler to banish the modal and save the preference
     const handleDismissWelcome = () => {
         if (dontShowAgain) {
             localStorage.setItem('emmaEngineWelcomeDismissed', 'true');
@@ -45,17 +41,13 @@ const EmmasRecipeEngine = () => {
         oilFree: true,
         glutenFree: false,
         sugarFree: true 
-    })
+    });
 
-    // 3-way state -> 'full', 'draft', or 'chat'
     const [engineMode, setEngineMode] = useState('chat');
-
-    // Bottom Bin Button State
     const [showBottomBin, setShowBottomBin] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
-            // If they've scrolled down more than 300px, show the button
             if (window.scrollY > 300) {
                 setShowBottomBin(true);
             } else {
@@ -64,14 +56,10 @@ const EmmasRecipeEngine = () => {
         };
 
         window.addEventListener('scroll', handleScroll);
-        
-        // The cleanup
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     const processChatTurn = async (newUserMessageText, prefs) => {
-        
-        // --- THE BOUNCER AND THE TOLLBOOTH ---
         if (engineMode === 'full') {
             if (user?.generation_tokens <= 0) {
                 alert("Oh dear, love! Your token stash is completely empty. Switch to a Free mode or top up to keep generating images.");
@@ -85,7 +73,6 @@ const EmmasRecipeEngine = () => {
                 return; 
             }
         }
-        // --- END OF TOLLBOOTH ---
 
         setIsLoading(true);
         setError(null);
@@ -112,14 +99,11 @@ const EmmasRecipeEngine = () => {
 
             const modelReplyText = await sendChatMessage(updatedHistory, systemInstructions);
 
-            // EMMA'S SURGICAL SPLIT: Separate the wit from the WFPB data
             let emmaCommentary = '';
             let recipeMarkdown = modelReplyText;
 
-            // Only attempt the split if we are generating a recipe
             if (!isChatActive) {
                 const titleMatchIndex = modelReplyText.indexOf('# ');
-                // If we found a title AND it's not the very first character...
                 if (titleMatchIndex > 0) {
                     emmaCommentary = modelReplyText.substring(0, titleMatchIndex).trim();
                     recipeMarkdown = modelReplyText.substring(titleMatchIndex).trim();
@@ -130,8 +114,8 @@ const EmmasRecipeEngine = () => {
                 ...updatedHistory,
                 { 
                     role: 'model', 
-                    parts: [{ text: modelReplyText }], // Original text for the API context
-                    displayParts: { commentary: emmaCommentary, recipe: recipeMarkdown } // Clean data for our UI
+                    parts: [{ text: modelReplyText }], 
+                    displayParts: { commentary: emmaCommentary, recipe: recipeMarkdown } 
                 }
             ]);
 
@@ -165,7 +149,6 @@ const EmmasRecipeEngine = () => {
 
     const isBroke = user?.generation_tokens <= 0;
 
-    // A helper function so we don't repeat our binning logic
     const handleResetEngine = () => {
         setChatHistory([]);
         setRecipeImage(null);
@@ -175,7 +158,7 @@ const EmmasRecipeEngine = () => {
 
     return (
         <div className="recipe-dashboard-container">
-            {/* Welcome Modal */}
+            {/* Welcome Modal Restored */}
             {showWelcomeModal && (
                 <div className="welcome-modal-overlay">
                     <div className="welcome-modal-content">
@@ -225,14 +208,26 @@ const EmmasRecipeEngine = () => {
                             <input type="radio" name="engineMode" value="chat" checked={engineMode === 'chat'} onChange={(e) => setEngineMode(e.target.value)} />
                             💬 Chat /w Emma (Free)
                         </label>
+                        <label className={`mode-label ${engineMode === 'live' ? 'active' : ''}`}>
+                            <input type="radio" name="engineMode" value="live" checked={engineMode === 'live'} onChange={(e) => setEngineMode(e.target.value)} />
+                            🎙️ Live Audio Session
+                        </label>
                     </div>
 
-                    <RecipeForm 
-                        onGenerate={handleInitialGenerate} 
-                        isLoading={isLoading} 
-                        isBroke={isBroke && engineMode === 'full'} 
-                        engineMode={engineMode}
-                    />
+                    {engineMode !== 'live' && (
+                        <RecipeForm 
+                            onGenerate={handleInitialGenerate} 
+                            isLoading={isLoading} 
+                            isBroke={isBroke && engineMode === 'full'} 
+                            engineMode={engineMode}
+                        />
+                    )}
+                    
+                    {engineMode === 'live' && (
+                        <div style={{ marginTop: '2rem' }}>
+                            <LiveChat />
+                        </div>
+                    )}
                 </>
             )}
 
@@ -242,8 +237,7 @@ const EmmasRecipeEngine = () => {
                 </div>
             )}
 
-            {/* Top 'New Chat' Button */}
-            {chatHistory.length > 0 && (
+            {chatHistory.length > 0 && engineMode !== 'live' && (
                 <div className="action-row top-action">
                     <button 
                         onClick={handleResetEngine}
@@ -255,6 +249,7 @@ const EmmasRecipeEngine = () => {
                 </div>
             )}
 
+            {/* Chat Container Restored! */}
             <div className="chat-container">
                 {chatHistory.map((msg, index) => {
                     if (msg.role === 'user') {
@@ -264,13 +259,11 @@ const EmmasRecipeEngine = () => {
                             </div>
                         )
                     } else {
-                        // Safely extract our split strings, falling back to full text if it's an old chat or Natter mode
                         const commentary = msg.displayParts?.commentary;
                         const recipeText = msg.displayParts?.recipe || msg.parts[0].text;
 
                         return (
                             <React.Fragment key={index}>
-                                {/* Render Emma's sassy chat bubble if she has something to say */}
                                 {commentary && (
                                     <div className="emma-banter-bubble" style={{ 
                                         backgroundColor: '#faf5ff', 
@@ -281,7 +274,6 @@ const EmmasRecipeEngine = () => {
                                         borderLeft: '4px solid #805ad5',
                                         boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                                     }}>
-                                        {/* EMMA'S NEW HEADER ROW WITH THE BUTTON */}
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <strong>Emma:</strong> 
                                             <button
@@ -302,7 +294,6 @@ const EmmasRecipeEngine = () => {
                                                 {speechState === 'playing' ? '⏸️' : '🔊'}
                                             </button>
                                         </div>
-                                        
                                         <div style={{ marginTop: '0.5rem', lineHeight: '1.5' }}>
                                             <ReactMarkdown>{commentary}</ReactMarkdown>
                                         </div>
@@ -321,8 +312,8 @@ const EmmasRecipeEngine = () => {
                 })}
             </div>
 
-            {/* Follow-up Chat Input */}
-            {chatHistory.length > 0 && (
+            {/* Follow-up Form Restored */}
+            {chatHistory.length > 0 && engineMode !== 'live' && (
                 <form onSubmit={handleFollowUpSubmit} className="follow-up-form">
                     <input 
                         type="text" 
@@ -344,8 +335,7 @@ const EmmasRecipeEngine = () => {
                 </form>
             )}
             
-            {/* Bottom 'Bin It' / 'New Chat' Button */}
-            {chatHistory.length > 0 && !isLoading && showBottomBin && (
+            {chatHistory.length > 0 && !isLoading && showBottomBin && engineMode !== 'live' && (
                 <div className="action-row bottom-action">
                     <button 
                         onClick={handleResetEngine}
